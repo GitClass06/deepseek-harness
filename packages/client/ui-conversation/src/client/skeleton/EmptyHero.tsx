@@ -98,6 +98,62 @@ export function HeroGlow({ className }: { className?: string | undefined }) {
   )
 }
 
+/**
+ * Non-interactive National Day scene ornaments for the blank hero.
+ * @param props.className - absolute-positioning class from the owner.
+ * @returns the decorative SVG layer.
+ */
+export function NationalDayHeroDecor({ className }: { className?: string | undefined }) {
+  const starId = `national-day-star-${useId().replace(/:/g, '')}`
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 1180 900"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      data-national-day-decor
+    >
+      <defs>
+        <path
+          id={starId}
+          d="M0 -46 10.8 -14.9 43.7 -14.2 17.5 5.7 27 37.2 0 18.4 -27 37.2 -17.5 5.7 -43.7 -14.2 -10.8 -14.9Z"
+        />
+      </defs>
+      <g className={css.decorStarWash}>
+        <use href={`#${starId}`} transform="translate(96 92) scale(1.22)" data-national-day-star />
+      </g>
+      <g className={css.decorGold}>
+        <use href={`#${starId}`} transform="translate(995 82) scale(.5)" data-national-day-star />
+        <use href={`#${starId}`} transform="translate(1040 124) scale(.22) rotate(18)" data-national-day-star />
+        <use href={`#${starId}`} transform="translate(958 134) scale(.18) rotate(-12)" data-national-day-star />
+        <use href={`#${starId}`} transform="translate(1010 174) scale(.16) rotate(28)" data-national-day-star />
+        <use href={`#${starId}`} transform="translate(1084 86) scale(.13) rotate(-20)" data-national-day-star />
+      </g>
+      <g className={css.decorBunting}>
+        <path className={css.decorBuntingLine} d="M42 176C168 126 286 196 434 148" />
+        <path className={css.decorFlagRed} d="M82 163 126 151 112 208Z" data-national-day-flag />
+        <path className={css.decorFlagGold} d="M148 149 191 154 166 204Z" data-national-day-flag />
+        <path className={css.decorFlagRed} d="M218 165 260 178 226 218Z" data-national-day-flag />
+        <path className={css.decorFlagGold} d="M292 172 337 166 316 218Z" data-national-day-flag />
+        <path className={css.decorFlagRed} d="M364 155 408 143 394 200Z" data-national-day-flag />
+      </g>
+      <g className={css.decorBuntingBottom}>
+        <path className={css.decorBuntingLine} d="M654 774C800 716 954 816 1136 742" />
+        <path className={css.decorFlagGold} d="M704 755 752 742 736 804Z" data-national-day-flag />
+        <path className={css.decorFlagRed} d="M786 747 835 756 806 811Z" data-national-day-flag />
+        <path className={css.decorFlagGold} d="M876 775 922 792 884 835Z" data-national-day-flag />
+        <path className={css.decorFlagRed} d="M972 785 1022 777 998 836Z" data-national-day-flag />
+        <path className={css.decorFlagGold} d="M1060 760 1104 742 1097 802Z" data-national-day-flag />
+      </g>
+      <g className={css.decorSparkles}>
+        <path d="M154 730h38M173 711v38" />
+        <path d="M944 246h30M959 231v30" />
+        <path d="M1090 584h26M1103 571v26" />
+      </g>
+    </svg>
+  )
+}
+
 /** Hero chrome props. The workspace row rides the InputBar accessory hole, not here. */
 export interface HeroShellProps {
   /** The owner's locale seat, passed down as a plain prop. */

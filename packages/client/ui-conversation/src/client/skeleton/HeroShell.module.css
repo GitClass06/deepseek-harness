@@ -76,6 +76,49 @@
   transform-origin: 50% 60%;
 }
 
+.decorStarWash {
+  fill: var(--dsw-alias-brand-primary);
+  opacity: 0.1;
+}
+
+.decorGold {
+  fill: var(--dsw-alias-brand-primary-invert);
+  opacity: 0.9;
+  filter: drop-shadow(0 8px 18px rgba(222, 41, 16, 0.14));
+}
+
+.decorBunting,
+.decorBuntingBottom {
+  opacity: 0.78;
+}
+
+.decorBuntingBottom {
+  opacity: 0.6;
+}
+
+.decorBuntingLine {
+  fill: none;
+  stroke: rgba(139, 0, 0, 0.28);
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+
+.decorFlagRed {
+  fill: var(--dsw-alias-brand-primary);
+}
+
+.decorFlagGold {
+  fill: var(--dsw-alias-brand-primary-invert);
+}
+
+.decorSparkles {
+  fill: none;
+  stroke: var(--dsw-alias-brand-primary-invert);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  opacity: 0.68;
+}
+
 @keyframes hero-fish-swim {
   0%, 100% {
     transform: translate(0, 0) rotate(0deg);

@@ -39,6 +39,9 @@
   - button "System" [pressed]:
     - img
     - text: System
+  - button "National Day":
+    - img
+    - text: National Day
   - text: Enter behavior while busy Busy only; Cmd/Ctrl+Enter uses the other behavior
   - button "Queue":
     - text: Queue

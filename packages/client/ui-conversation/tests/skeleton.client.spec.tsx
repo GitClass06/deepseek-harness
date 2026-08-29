@@ -22,7 +22,7 @@ import { SessionInputShell } from '../src/client/input/facade.ts'
 import { en, zh } from '../src/client/locales.ts'
 import { ConversationRoot } from '../src/client/skeleton/ConversationRoot.tsx'
 import { ConversationSession, ConversationSessionHeader } from '../src/client/skeleton/ConversationSession.tsx'
-import { HeroShell } from '../src/client/skeleton/EmptyHero.tsx'
+import { HeroShell, NationalDayHeroDecor } from '../src/client/skeleton/EmptyHero.tsx'
 import type { HeroShellProps } from '../src/client/skeleton/EmptyHero.tsx'
 import { InputBar } from '../src/client/skeleton/InputBar.tsx'
 import type { InputBarProps } from '../src/client/skeleton/InputBar.tsx'
@@ -292,6 +292,15 @@ describe('Hero chrome', () => {
     expect(brandMarkOwner.size).toBe(34)
     expect(brandMarkOwner.className).toBeTypeOf('string')
     expect(renderSlot.mock.calls[0]?.[2]?.fallback).toBeTruthy()
+  })
+
+  it('provides a non-interactive SVG decoration layer for the National Day theme', () => {
+    const view = render(<NationalDayHeroDecor className="decor" />)
+    const decor = view.container.querySelector('[data-national-day-decor]')
+    expect(decor?.tagName.toLowerCase()).toBe('svg')
+    expect(decor?.getAttribute('aria-hidden')).toBe('true')
+    expect(view.container.querySelectorAll('[data-national-day-star]')).toHaveLength(6)
+    expect(view.container.querySelectorAll('[data-national-day-flag]')).toHaveLength(10)
   })
 })
 

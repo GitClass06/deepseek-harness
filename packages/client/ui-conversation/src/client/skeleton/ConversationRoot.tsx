@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import type { WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConversationSlotProps, InputZone } from '../contract/slots.ts'
-import { HeroGlow, HeroShell, WorkspaceChip, workspaceLabel } from './EmptyHero.tsx'
+import { HeroGlow, HeroShell, NationalDayHeroDecor, WorkspaceChip, workspaceLabel } from './EmptyHero.tsx'
 import css from './ConversationRoot.module.css'
 
 /** Full props composed from the slot contract. */
@@ -185,6 +185,7 @@ export function ConversationRoot({
 
   return (
     <div className={css.root} data-phase={phase}>
+      {hero && <NationalDayHeroDecor className={css.nationalDayDecor} />}
       {renderSlot('conversation.session.header', {})}
       <div className={css.scrollBody} data-conversation-scroll="">
         {renderSlot('conversation.session', {})}

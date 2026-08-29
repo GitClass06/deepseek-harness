@@ -92,8 +92,10 @@ describe('ui-theme apply', () => {
     declareItems(before.slots)
     await before.ctx.plugin({ inject: [...inject], apply }).await()
     expect(before.locale.bind(SETTINGS_NS)('appearance.title')).toBe('外观')
+    expect(before.locale.bind(SETTINGS_NS)('appearance.nationalDay')).toBe('国庆')
     before.locale.setLocale('en')
     expect(before.locale.bind(SETTINGS_NS)('appearance.title')).toBe('Appearance')
+    expect(before.locale.bind(SETTINGS_NS)('appearance.nationalDay')).toBe('National Day')
     const entry = before.slots.entries(SLOT).find(e => e.component === AppearanceRow)!
     expect(entry.options).toMatchObject({ id: 'appearance', order: 10 })
 
@@ -120,10 +122,55 @@ describe('ui-theme apply', () => {
     // Copy rides the standard locale seat: the entry declares the namespace.
     expect(b.slots.entries(SLOT).find(e => e.component === AppearanceRow)!.locale).toBe(SETTINGS_NS)
 
+    face.setTheme('national-day')
+    expect(theme.getTheme().preference).toBe('national-day')
+    expect(instance.getSnapshot().preference).toBe('national-day')
     face.setTheme('system')
     expect(theme.getTheme().preference).toBe('system')
     expect(instance.getSnapshot().preference).toBe('system')
-    await vi.waitFor(() => { expect(b.mutate).toHaveBeenCalledTimes(2) })
+    await vi.waitFor(() => { expect(b.mutate).toHaveBeenCalledTimes(3) })
+  })
+
+  it('keeps a clicked built-in preference while a stale settings refresh settles first', async () => {
+    const b = await bench()
+    declareItems(b.slots)
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const theme = b.ctx.get('theme') as ThemeRuntime
+    await vi.waitFor(() => { expect(theme.getTheme().preference).toBe('system') })
+
+    const describe = b.describe.getMockImplementation()!
+    const staleRefresh = deferred<Awaited<ReturnType<typeof describe>>>()
+    b.describe.mockImplementationOnce(() => staleRefresh.promise)
+    b.ctx.remote.$dispatch('settings/document-updated', [THEME_SETTINGS_NAMESPACE, 0])
+    await vi.waitFor(() => { expect(b.describe).toHaveBeenCalledTimes(2) })
+
+    const pendingMutation = deferred<Awaited<ReturnType<typeof b.mutate>>>()
+    b.mutate.mockImplementationOnce(() => pendingMutation.promise)
+    theme.setTheme('national-day')
+    await vi.waitFor(() => { expect(b.mutate).toHaveBeenCalledOnce() })
+
+    staleRefresh.resolve(await describe())
+    await staleRefresh.promise
+    await Promise.resolve()
+    expect(theme.getTheme().preference).toBe('national-day')
+    expect(theme.getTheme().active.id).toBe('national-day')
+
+    pendingMutation.resolve({
+      rpcId: 'theme-mutate' as never,
+      result: {
+        ok: true as const,
+        value: {
+          ns: THEME_SETTINGS_NAMESPACE,
+          schema: ThemeSettingsSchema.toJSON(),
+          value: { preference: 'national-day' },
+          applies: 'live' as const,
+          secrets: [],
+          revision: 1,
+        },
+      },
+    })
+    await pendingMutation.promise
+    await vi.waitFor(() => { expect(theme.getTheme().preference).toBe('national-day') })
   })
 
   it('loads Host settings at boot, refreshes its namespace, and keeps remote browsers process-local', async () => {

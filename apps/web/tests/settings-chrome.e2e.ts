@@ -1,6 +1,6 @@
 // Web e2e scenarios: the settings surface — the modal shell (trigger, nav,
 // section switching, both close paths), the Appearance preference row (the
-// real theme gesture — click 深色 and the whole cascade runs: ThemeRuntime preference -> Host settings
+// real theme gestures — click 深色/国庆 and the whole cascade runs: ThemeRuntime preference -> Host settings
 // -> theme/change -> ui-layout's presenter -> body attribute -> alias token +
 // browser theme-color metadata)
 // the Language row and busy-state Enter preference (both Host-backed), plus
@@ -250,17 +250,32 @@ describe('web e2e: settings modal and General preferences', () => {
       legacy: string | null
       themeColor: string | null
       themeColorCount: number
+      nationalDayDecorDisplay: string | null
+      nationalDayFlagCount: number
+      nationalDayStarCount: number
+      newSessionBackground: string | null
+      newSessionColor: string | null
+      sidebarFill: string
       token: string
     }
     const readState = async (target: Page = page): Promise<ThemeState> => await target.evaluate(() => {
       const metas = document.head.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
       const computed = getComputedStyle(document.body)
+      const newSession = document.querySelector<HTMLElement>('button[class*="newSession"]')
+      const newSessionStyle = newSession === null ? undefined : getComputedStyle(newSession)
+      const decor = document.querySelector<SVGSVGElement>('[data-national-day-decor]')
       return {
         attr: document.body.hasAttribute('data-ds-dark-theme'),
         background: computed.backgroundColor,
         legacy: localStorage.getItem('dsh.theme'),
         themeColor: metas[0]?.content ?? null,
         themeColorCount: metas.length,
+        nationalDayDecorDisplay: decor === null ? null : getComputedStyle(decor).display,
+        nationalDayFlagCount: decor?.querySelectorAll('[data-national-day-flag]').length ?? 0,
+        nationalDayStarCount: decor?.querySelectorAll('[data-national-day-star]').length ?? 0,
+        newSessionBackground: newSessionStyle?.backgroundColor ?? null,
+        newSessionColor: newSessionStyle?.color ?? null,
+        sidebarFill: computed.getPropertyValue('--dsw-specific-sidebar-fill').trim(),
         token: computed.getPropertyValue('--dsw-alias-bg-base').trim(),
       }
     })
@@ -292,22 +307,53 @@ describe('web e2e: settings modal and General preferences', () => {
     expectThemeColorSynchronized(dark)
     await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
       .toMatch(/ui-theme:\n\s+preference: dark/)
+
+    const nationalDayCube = dialog.getByRole('button', { name: '国庆' })
+    await nationalDayCube.click()
+    await expect.poll(() => nationalDayCube.getAttribute('aria-pressed'), { timeout: 5_000 }).toBe('true')
+    const nationalDay = await readState()
+    expect(nationalDay.attr).toBe(false)
+    expect(nationalDay.legacy).toBeNull()
+    expect(nationalDay.nationalDayDecorDisplay).toBe('block')
+    expect(nationalDay.nationalDayFlagCount).toBe(10)
+    expect(nationalDay.nationalDayStarCount).toBe(6)
+    expect(nationalDay.newSessionBackground).toBe('rgb(255, 255, 255)')
+    expect(nationalDay.newSessionColor).toBe('rgb(139, 0, 0)')
+    expect(nationalDay.token).toBe('rgb(255, 245, 245)')
+    expect(nationalDay.sidebarFill).toBe('rgb(139, 0, 0)')
+    expect(nationalDay.token).not.toBe(dark.token)
+    expectThemeColorSynchronized(nationalDay)
+    const dialogTokens = await dialog.evaluate((element) => {
+      const computed = getComputedStyle(element)
+      return {
+        labelPrimary: computed.getPropertyValue('--dsw-alias-label-primary').trim(),
+        navActive: computed.getPropertyValue('--dsw-specific-sidebar-nav-item-active').trim(),
+      }
+    })
+    expect(dialogTokens).toEqual({
+      labelPrimary: 'rgb(92, 0, 0)',
+      navActive: 'rgba(255, 215, 0, 0.24)',
+    })
+    await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
+      .toMatch(/ui-theme:\n\s+preference: national-day/)
     await page.keyboard.press('Escape')
 
-    // Reload: the preference survives the background Host read + presenter update.
+    // Reload: the holiday preference survives the background Host read + presenter update.
     const warningStart = tripwire.warnings.length
     await page.reload({ waitUntil: 'load' })
     await page.waitForSelector('[class*="frame"]', { timeout: 30_000 })
     acknowledgeReloadConnectionLoss(tripwire, warningStart)
     await page.emulateMedia({ colorScheme: 'light' })
-    await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(true)
+    await expect.poll(async () => (await readState()).token, { timeout: 5_000 }).toBe('rgb(255, 245, 245)')
     const reloaded = await readState()
+    expect(reloaded.attr).toBe(false)
+    expect(reloaded.sidebarFill).toBe('rgb(139, 0, 0)')
     expect(reloaded.legacy).toBeNull()
     expectThemeColorSynchronized(reloaded)
 
     // A second live Host binds another ephemeral port but shares the same
     // user-settings home. Its fresh origin has no theme localStorage and still
-    // converges to dark before the settings dialog opens.
+    // converges to National Day before the settings dialog opens.
     const second = await launchWebScaffold({ harnessHome: scaffold.harnessHome })
     const secondPage = await browser.newPage({ viewport: { width: 1680, height: 1000 }, locale: ZH_BROWSER_LOCALE })
     const secondTripwire = watchConsole(secondPage)
@@ -316,8 +362,10 @@ describe('web e2e: settings modal and General preferences', () => {
       await secondPage.emulateMedia({ colorScheme: 'light' })
       await secondPage.goto(second.baseUrl, { waitUntil: 'load' })
       await secondPage.waitForSelector('[class*="frame"]', { timeout: 30_000 })
-      await expect.poll(async () => (await readState(secondPage)).attr, { timeout: 5_000 }).toBe(true)
+      await expect.poll(async () => (await readState(secondPage)).token, { timeout: 5_000 }).toBe('rgb(255, 245, 245)')
       const secondState = await readState(secondPage)
+      expect(secondState.attr).toBe(false)
+      expect(secondState.sidebarFill).toBe('rgb(139, 0, 0)')
       expect(secondState.legacy).toBeNull()
       expectThemeColorSynchronized(secondState)
       expect(secondTripwire.pageErrors).toEqual([])
@@ -327,7 +375,7 @@ describe('web e2e: settings modal and General preferences', () => {
       await second.close()
     }
 
-    // `system` follows the emulated OS scheme (dark stays dark, light clears).
+    // `system` follows the emulated OS scheme outside the local holiday window.
     await page.getByRole('button', { name: '设置', exact: true }).click()
     const systemCube = page.getByRole('dialog', { name: '设置' }).getByRole('button', { name: '跟随系统' })
     await systemCube.click()
@@ -335,7 +383,11 @@ describe('web e2e: settings modal and General preferences', () => {
     await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(false)
     expectThemeColorSynchronized(await readState())
     await page.emulateMedia({ colorScheme: 'dark' })
-    await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(true)
+    const holidayWindow = await page.evaluate(() => {
+      const date = new Date()
+      return date.getMonth() === 9 && date.getDate() >= 1 && date.getDate() <= 7
+    })
+    await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(!holidayWindow)
     expectThemeColorSynchronized(await readState())
     // Restore for the specs that follow: light preference beats the emulated
     // dark OS scheme, leaving the shared page in the light default.

@@ -236,10 +236,11 @@
   padding: 8px 16px;
   margin: 0 2px 8px;
   box-sizing: border-box;
-  border: 1px solid var(--dsw-alias-border-l2);
+  border: 1px solid var(--dsw-specific-sidebar-new-session-border, var(--dsw-alias-border-l2));
   border-radius: 12px;
-  background: var(--dsw-alias-button-elevated-fill);
-  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-specific-sidebar-new-session-fill, var(--dsw-alias-button-elevated-fill));
+  color: var(--dsw-specific-sidebar-new-session-label, var(--dsw-alias-label-primary));
+  box-shadow: var(--dsw-specific-sidebar-new-session-shadow, none);
   font-size: 14px;
   font-weight: 500;
   line-height: 22px;
@@ -248,7 +249,7 @@
 }
 
 .newSession:hover {
-  background: var(--dsw-alias-button-floating-hover);
+  background: var(--dsw-specific-sidebar-new-session-hover, var(--dsw-alias-button-floating-hover));
 }
 
 .collapsed .newSession {
@@ -260,6 +261,8 @@
   gap: 0;
   border-color: transparent;
   background: transparent;
+  color: var(--dsw-alias-label-primary);
+  box-shadow: none;
 }
 
 .collapsed .newSession:hover {

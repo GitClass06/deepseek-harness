@@ -64,6 +64,24 @@ describe('SidebarRoot.module.css', () => {
     expect(declarations('.collapsed .newSession')?.get('width')).toBe('36px')
   })
 
+  it('lets themes retint the New Session capsule without lowering rail contrast', () => {
+    const button = declarations('.newSession')
+    expect(button?.get('border')).toBe(
+      '1px solid var(--dsw-specific-sidebar-new-session-border, var(--dsw-alias-border-l2))',
+    )
+    expect(button?.get('background')).toBe(
+      'var(--dsw-specific-sidebar-new-session-fill, var(--dsw-alias-button-elevated-fill))',
+    )
+    expect(button?.get('color')).toBe(
+      'var(--dsw-specific-sidebar-new-session-label, var(--dsw-alias-label-primary))',
+    )
+    expect(button?.get('box-shadow')).toBe('var(--dsw-specific-sidebar-new-session-shadow, none)')
+    expect(declarations('.newSession:hover')?.get('background')).toBe(
+      'var(--dsw-specific-sidebar-new-session-hover, var(--dsw-alias-button-floating-hover))',
+    )
+    expect(declarations('.collapsed .newSession')?.get('color')).toBe('var(--dsw-alias-label-primary)')
+  })
+
   it('keeps the slotted brand row at the full artwork height', () => {
     expect(declarations('.brandIdentity')?.get('height')).toBe('24px')
     expect(declarations('.brandName')?.get('height')).toBe('24px')

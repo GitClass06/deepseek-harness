@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-08-29-national-day-theme.md
+2026-08-29-national-day-theme.md: 4ee04583c00794881efc2f9677a4561af78ff3c0
+2026-08-29-national-day-theme.zh.md: 94c1961db1812ea5cca76d6d9bc7038c11f44933

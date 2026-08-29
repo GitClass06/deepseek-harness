@@ -8,6 +8,8 @@ The expanded brand row renders `sidebar.brand.mark` and `sidebar.brand.name` as 
 
 New Session starts the runtime's page-local frontend Session Intent. The runtime targets the explicit Workspace used by a scoped action, otherwise the current Session's Workspace, otherwise the most recently active Workspace; when none exists it clears into the blank New Session page. Workspace-specific controls and the shared picker belong to ui-workspace.
 
+The expanded New Session capsule reads `--dsw-specific-sidebar-new-session-*` tokens for fill, border, label, hover, and shadow. Seasonal sidebars can therefore keep the New Session label high contrast without changing collapsed rail geometry; the collapsed control keeps the sidebar label alias.
+
 `SidebarRootComponentProps` composes the layout owner share, the global `useSessions` and `useWorkspaces` hooks, the declared brand, `sidebar.workspaces`, and `sidebar.settings` child slots, and injected `startSession` plus sidebar-toggle callbacks. There is no plugin store.
 
 During a live collapse, the shell holds the expanded content at its current width while it fades out for 150ms. The four upper controls—the shell toggle and New Session plus add and search rendered through `sidebar.workspaces`—then share one 150ms fade and 49px leftward translation into the 56px rail, ending with the layout's 300ms column slide; every 36px control box follows the same path to the rail's 10px left inset. The bottom-pinned `sidebar.settings` control shares the fade timing but has no horizontal translation. A page that starts collapsed renders the rail statically, and reduced-motion mode disables both transitions.

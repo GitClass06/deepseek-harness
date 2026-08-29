@@ -727,6 +727,22 @@ export const IconFollowsystemOutline16 = ({ size = 16, className }: IconProps) =
   </svg>
 )
 
+/** national_day_outline_16 (flag plus stars for the built-in holiday theme) */
+export const IconNationalDayOutline16 = ({ size = 16, className }: IconProps) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2.25 1.75H3.55V14.25H2.25V1.75Z" fill="currentColor" />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M3.55 2.25H13.75V9.35H3.55V2.25ZM4.85 3.55V8.05H12.45V3.55H4.85Z"
+      fill="currentColor"
+    />
+    <path d="M6.14 4.04L6.51 4.8L7.34 4.92L6.74 5.51L6.88 6.34L6.14 5.94L5.4 6.34L5.54 5.51L4.94 4.92L5.77 4.8L6.14 4.04Z" fill="currentColor" />
+    <path d="M8.85 4.29L9.07 4.74L9.56 4.81L9.2 5.16L9.29 5.65L8.85 5.42L8.41 5.65L8.49 5.16L8.14 4.81L8.63 4.74L8.85 4.29Z" fill="currentColor" />
+    <path d="M10.77 5.7L10.99 6.15L11.48 6.22L11.13 6.57L11.21 7.06L10.77 6.83L10.33 7.06L10.41 6.57L10.06 6.22L10.55 6.15L10.77 5.7Z" fill="currentColor" />
+  </svg>
+)
+
 /** ic_ds_data_outline_16 */
 export const IconDataOutline16 = ({ size = 16, className }: IconProps) => (
   <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

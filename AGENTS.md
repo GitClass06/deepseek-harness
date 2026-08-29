@@ -149,3 +149,9 @@ Docs accompany every code change: update affected README and JSDoc contracts tog
 ## Vendoring policy
 
 `vendor/` packages are pinned source copies (manifest with upstream SHAs in [vendor/README.md](vendor/README.md)). Update via the sync procedure there; re-apply or retire the logged local modifications; rerun `pnpm run test && pnpm run build`.
+
+[Calicat MCP 使用说明]
+
+在收到 calicat.cn 域名的连接时，不要直接尝试访问，而是通过 Calicat MCP 相关工具的说明获取数据。
+get_meta_data 工具获取到的是大致的图层骨架结构，使用此工具可用较少的 Token 快速浏览页面设计、检索图层。get_meta_data 获取到的数据不能直接用作前端代码生成。
+get_design_data 工具用于获取指定图层的详细设计数据，在你开始实际的前端代码生成前，确保你通过 get_design_data 获取到了图层的详细设计数据，并以此为基础进行前端代码生成。

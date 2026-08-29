@@ -1,11 +1,12 @@
 /**
  * Browser theme registry over the `--dsw-*` token stylesheets. The service
- * owns the live theme preference (light/dark/system), resolves `system` through
- * `prefers-color-scheme`, and publishes immutable snapshots; it never touches
- * the DOM — ui-layout's presenter consumes the resolved snapshot. The Host
- * settings scope loads and stores the preference in the user-settings
- * document. The plugin also registers the Appearance preference row into the
- * settings General section — the theme feature owns its own settings surface.
+ * owns the live theme preference (light/dark/system/national-day), resolves
+ * `system` through the holiday calendar and `prefers-color-scheme`, and
+ * publishes immutable snapshots; it never touches the DOM — ui-layout's
+ * presenter consumes the resolved snapshot. The Host settings scope loads and
+ * stores the preference in the user-settings document. The plugin also
+ * registers the Appearance preference row into the settings General section
+ * — the theme feature owns its own settings surface.
  */
 import type { Context } from '@deepseek-ai/cordis'
 import type { BoundActions } from '@deepseek-ai/dsh-client-ui-slots'
@@ -21,13 +22,18 @@ import { createAppearanceRowStore } from './settings-store.ts'
 import { installThemeStyles } from './styles.ts'
 import { en, zh, type ThemeKey } from './locales.ts'
 import {
-  DEFAULT_PREFERENCE, isThemePreference, THEME_PREFERENCE_FIELD, THEME_SETTINGS_NAMESPACE,
+  calendarThemePreferenceAt, msUntilNextLocalDate, NATIONAL_DAY_TOKENS,
+} from '../builtin-themes.ts'
+import {
+  DEFAULT_PREFERENCE, isThemePreference, NATIONAL_DAY_THEME_ID,
+  THEME_PREFERENCE_FIELD, THEME_SETTINGS_NAMESPACE,
   type ThemePreference, type ThemeSettings,
 } from '../theme-settings.ts'
 
 export type { AppearanceRowComponentProps, AppearanceRowInjected } from './AppearanceRow.tsx'
 export type { AppearanceRowState } from './settings-store.ts'
 export type { ThemeKey } from './locales.ts'
+export { NATIONAL_DAY_THEME_ID } from '../theme-settings.ts'
 export type { ThemePreference, ThemeSettings } from '../theme-settings.ts'
 
 /** Namespace owning this feature's settings-row copy. */
@@ -76,9 +82,10 @@ export interface ThemeSnapshot {
   /** The persisted preference (may be `system`). */
   preference: ThemePreference
   /**
-   * The resolved active theme (`system` resolved via prefers-color-scheme)
-   * with override layers folded into its tokens (seq order, later layers win
-   * per-token; each value picked for the active color scheme).
+   * The resolved active theme (`system` resolved via the holiday calendar and
+   * prefers-color-scheme) with override layers folded into its tokens (seq
+   * order, later layers win per-token; each value picked for the active color
+   * scheme).
    */
   active: ThemeDefinition
   /** Registered themes in registration order. */
@@ -107,8 +114,8 @@ declare module '@deepseek-ai/cordis' {
   }
   interface Events {
     /**
-     * Theme state changed (preference switched, registry updated, or the OS
-     * color scheme changed while the preference is `system`).
+     * Theme state changed (preference switched, registry updated, or the
+     * resolved system theme changed while the preference is `system`).
      * @param snapshot - Current immutable theme snapshot.
      * @mode emit
      */
@@ -119,9 +126,11 @@ declare module '@deepseek-ai/cordis' {
 const BUILTIN_THEMES: readonly ThemeDefinition[] = Object.freeze([
   Object.freeze({ id: 'light', colorScheme: 'light' as const, tokens: Object.freeze({}) }),
   Object.freeze({ id: 'dark', colorScheme: 'dark' as const, tokens: Object.freeze({}) }),
+  Object.freeze({ id: NATIONAL_DAY_THEME_ID, colorScheme: 'light' as const, tokens: NATIONAL_DAY_TOKENS }),
 ])
 
 const BUILTIN_INSPECT_TOKENS: readonly ThemeTokenInspection[] = Object.freeze([
+  { name: '--dsw-specific-app-frame-fill', description: 'Application frame background.', valueType: 'CSS background', requiresLightAndDark: true, cssVariable: '--dsw-specific-app-frame-fill' },
   { name: '--dsw-alias-bg-base', description: 'Application base background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-bg-base' },
   { name: '--dsw-alias-bg-layer-1', description: 'Primary raised surface background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-bg-layer-1' },
   { name: '--dsw-alias-bg-layer-2', description: 'Secondary nested surface background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-bg-layer-2' },
@@ -134,7 +143,15 @@ const BUILTIN_INSPECT_TOKENS: readonly ThemeTokenInspection[] = Object.freeze([
   { name: '--dsw-alias-state-error-primary', description: 'Primary error state color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-state-error-primary' },
   { name: '--dsw-alias-state-success-primary', description: 'Primary success state color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-state-success-primary' },
   { name: '--dsw-alias-state-warn-primary', description: 'Primary warning state color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-state-warn-primary' },
+  { name: '--dsw-specific-conversation-fill', description: 'Conversation column background.', valueType: 'CSS background', requiresLightAndDark: true, cssVariable: '--dsw-specific-conversation-fill' },
+  { name: '--dsw-specific-national-day-decoration-display', description: 'National Day hero decoration display mode.', valueType: 'CSS display', requiresLightAndDark: true, cssVariable: '--dsw-specific-national-day-decoration-display' },
   { name: '--dsw-specific-sidebar-fill', description: 'Sidebar column and title-row background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-fill' },
+  { name: '--dsw-specific-sidebar-label-primary', description: 'Sidebar primary text color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-label-primary' },
+  { name: '--dsw-specific-sidebar-new-session-border', description: 'Sidebar New Session button border.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-border' },
+  { name: '--dsw-specific-sidebar-new-session-fill', description: 'Sidebar New Session button background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-fill' },
+  { name: '--dsw-specific-sidebar-new-session-hover', description: 'Sidebar New Session button hover background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-hover' },
+  { name: '--dsw-specific-sidebar-new-session-label', description: 'Sidebar New Session text and icon color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-label' },
+  { name: '--dsw-specific-sidebar-new-session-shadow', description: 'Sidebar New Session button shadow.', valueType: 'CSS shadow', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-shadow' },
 ])
 
 /**
@@ -144,9 +161,11 @@ const BUILTIN_INSPECT_TOKENS: readonly ThemeTokenInspection[] = Object.freeze([
  * through {@link setTheme}; continuous sync only through the `theme/change`
  * event. {@link overrideTokens} stacks partial token layers over the active
  * theme without touching the registry.
- * The service holds the `prefers-color-scheme` media query (environment
- * sensing, not presentation) and re-emits when the OS scheme flips while the
- * preference is `system`.
+ * The service holds the `prefers-color-scheme` media query and a local-date
+ * timer (environment sensing, not presentation) and re-emits when either one
+ * changes the resolved theme while the preference is `system`. Built-in
+ * preference writes fence Host adoptions until the write settles, so an older
+ * settings snapshot cannot undo the user's clicked theme.
  */
 export class ThemeRuntime {
   private readonly ctx: Context
@@ -156,6 +175,9 @@ export class ThemeRuntime {
   private revision = 0
   private snapshot: ThemeSnapshot
   private readonly media: MediaQueryList | undefined
+  private calendarTimer: ReturnType<typeof setTimeout> | undefined
+  private pendingPreferenceWrite: { generation: number; preference: ThemePreference } | undefined
+  private preferenceWriteGeneration = 0
   /** Override layers by source; seq (monotonic) is the stacking order. */
   private readonly overrides = new Map<string, { seq: number; tokens: ThemeTokenOverrides }>()
   private overrideSeq = 0
@@ -176,13 +198,17 @@ export class ThemeRuntime {
       const media = this.media
       const onChange = (): void => {
         if (this.preference !== 'system') return
-        this.publish()
+        this.publishIfResolvedThemeChanged()
       }
       ctx.effect(() => {
         media.addEventListener('change', onChange)
         return () => { media.removeEventListener('change', onChange) }
       }, 'ui-theme: prefers-color-scheme listener')
     }
+    ctx.effect(() => {
+      this.armCalendarTimer()
+      return () => { this.clearCalendarTimer() }
+    }, 'ui-theme: calendar theme listener')
     ctx.effect(() => host.subscribe(() => { this.adopt() }), 'ui-theme: settings scope adoption')
     this.adopt()
   }
@@ -226,7 +252,18 @@ export class ThemeRuntime {
     }
     if (this.preference === id) return
     this.preference = id as ThemePreference
-    if (isThemePreference(id)) void this.host.set(THEME_PREFERENCE_FIELD, id)
+    if (isThemePreference(id)) {
+      const generation = ++this.preferenceWriteGeneration
+      this.pendingPreferenceWrite = { generation, preference: id }
+      const settle = (): void => {
+        if (this.pendingPreferenceWrite?.generation !== generation) return
+        this.pendingPreferenceWrite = undefined
+        this.adopt()
+      }
+      void this.host.set(THEME_PREFERENCE_FIELD, id).then(settle, settle)
+    } else {
+      this.pendingPreferenceWrite = undefined
+    }
     this.publish()
   }
 
@@ -234,6 +271,11 @@ export class ThemeRuntime {
   private adopt(): void {
     const section = this.host.getSnapshot().value
     if (section === undefined || this.preference === section.preference) return
+    if (this.pendingPreferenceWrite !== undefined) {
+      if (section.preference !== this.pendingPreferenceWrite.preference) return
+      this.pendingPreferenceWrite = undefined
+      return
+    }
     this.preference = section.preference
     this.publish()
   }
@@ -291,20 +333,31 @@ export class ThemeRuntime {
   }
 
   private buildSnapshot(): ThemeSnapshot {
-    const resolvedId = this.preference === 'system'
-      ? (this.media?.matches === true ? 'dark' : 'light')
-      : this.preference
-    // Both built-ins always exist; a registered preference id resolves or has
-    // been reset by its disposer, so the lookup cannot miss.
-    const active = this.themes.find(t => t.id === resolvedId)
-    /* v8 ignore next 2 -- needs a registry without light/dark, which register()/dispose() cannot produce */
-    if (active === undefined) throw new Error(`theme registry lost "${resolvedId}"`)
     return Object.freeze({
       preference: this.preference,
-      active: this.composeActive(active),
+      active: this.composeActive(this.resolveActiveTheme()),
       themes: Object.freeze([...this.themes]),
       revision: this.revision,
     })
+  }
+
+  /** Resolve the current preference to one registered concrete theme. */
+  private resolveActiveTheme(): ThemeDefinition {
+    const resolvedId = this.preference === 'system'
+      ? (calendarThemePreferenceAt() ?? (this.media?.matches === true ? 'dark' : 'light'))
+      : this.preference
+    // Built-ins always exist; a registered preference id resolves or has been
+    // reset by its disposer, so the lookup cannot miss.
+    const active = this.themes.find(t => t.id === resolvedId)
+    /* v8 ignore next 2 -- needs a registry without light/dark, which register()/dispose() cannot produce */
+    if (active === undefined) throw new Error(`theme registry lost "${resolvedId}"`)
+    return active
+  }
+
+  /** Re-emit only when environment sensing resolves to a different theme id. */
+  private publishIfResolvedThemeChanged(): void {
+    if (this.snapshot.active.id === this.resolveActiveTheme().id) return
+    this.publish()
   }
 
   /**
@@ -328,6 +381,22 @@ export class ThemeRuntime {
     this.revision += 1
     this.snapshot = this.buildSnapshot()
     this.ctx.emit('theme/change', this.snapshot)
+  }
+
+  private armCalendarTimer(): void {
+    this.clearCalendarTimer()
+    this.calendarTimer = setTimeout(() => {
+      this.calendarTimer = undefined
+      if (this.preference === 'system') this.publishIfResolvedThemeChanged()
+      this.armCalendarTimer()
+    }, msUntilNextLocalDate())
+    unrefTimer(this.calendarTimer)
+  }
+
+  private clearCalendarTimer(): void {
+    if (this.calendarTimer === undefined) return
+    clearTimeout(this.calendarTimer)
+    this.calendarTimer = undefined
   }
 }
 
@@ -367,6 +436,12 @@ function dynamicToken(name: string): ThemeTokenInspection {
     requiresLightAndDark: true,
     ...(name.startsWith('--') ? { cssVariable: name } : {}),
   }
+}
+
+function unrefTimer(timer: ReturnType<typeof setTimeout>): void {
+  const candidate = timer as { unref?: unknown }
+  const unref = candidate.unref
+  if (typeof unref === 'function') unref.call(timer)
 }
 
 /**

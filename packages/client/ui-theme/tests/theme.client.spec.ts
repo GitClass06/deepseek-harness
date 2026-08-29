@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { stubSettingsScope, type StubSettingsScope } from '@deepseek-ai/dsh-client-test-runtime'
 import type {
@@ -21,6 +21,23 @@ const make = (host = stubSettingsScope<ThemeSettings>()): {
   return { ctx, theme: new ThemeRuntime(ctx, host.scope), events, host }
 }
 
+function deferred<T = void>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej })
+  return { promise, resolve, reject }
+}
+
+beforeEach(() => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(2026, 7, 29, 12, 0, 0, 0))
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllGlobals()
+})
+
 describe('ThemeRuntime', () => {
   it('defaults to the system preference resolved against prefers-color-scheme', () => {
     const { theme } = make()
@@ -29,7 +46,7 @@ describe('ThemeRuntime', () => {
     // jsdom matchMedia is absent; system resolves to light.
     expect(snapshot.active.id).toBe('light')
     expect(snapshot.active.colorScheme).toBe('light')
-    expect(snapshot.themes.map(t => t.id)).toEqual(['light', 'dark'])
+    expect(snapshot.themes.map(t => t.id)).toEqual(['light', 'dark', 'national-day'])
   })
 
   it('setTheme switches, writes through the scope, republishes, and keeps DOM untouched', () => {
@@ -46,6 +63,61 @@ describe('ThemeRuntime', () => {
     theme.setTheme('dark')
     expect(events).toHaveLength(1)
     expect(host.set).toHaveBeenCalledOnce()
+  })
+
+  it('keeps a clicked built-in preference while an older Host snapshot arrives before the write settles', async () => {
+    const host = stubSettingsScope<ThemeSettings>()
+    const pending = deferred()
+    host.set.mockReturnValueOnce(pending.promise)
+    const { theme, events } = make(host)
+
+    theme.setTheme('national-day')
+    host.publish({ status: 'ready', value: { preference: 'system' }, revision: 1, writable: true })
+
+    expect(theme.getTheme().preference).toBe('national-day')
+    expect(theme.getTheme().active.id).toBe('national-day')
+    expect(events.map(event => event.preference)).toEqual(['national-day'])
+
+    host.publish({ value: { preference: 'national-day' }, revision: 2 })
+    pending.resolve()
+    await pending.promise
+    await Promise.resolve()
+
+    expect(theme.getTheme().preference).toBe('national-day')
+    expect(events.map(event => event.preference)).toEqual(['national-day'])
+  })
+
+  it('adopts Host recovery after a pending built-in preference write settles', async () => {
+    const host = stubSettingsScope<ThemeSettings>()
+    const pending = deferred()
+    host.set.mockReturnValueOnce(pending.promise)
+    const { theme, events } = make(host)
+
+    theme.setTheme('national-day')
+    host.publish({ status: 'ready', value: { preference: 'light' }, revision: 1, writable: true })
+    expect(theme.getTheme().preference).toBe('national-day')
+
+    pending.resolve()
+    await pending.promise
+    await Promise.resolve()
+
+    expect(theme.getTheme().preference).toBe('light')
+    expect(events.map(event => event.preference)).toEqual(['national-day', 'light'])
+  })
+
+  it('persists National Day as a built-in light theme with holiday tokens', () => {
+    const { theme, host } = make()
+    theme.setTheme('national-day')
+    expect(theme.getTheme().preference).toBe('national-day')
+    expect(theme.getTheme().active.id).toBe('national-day')
+    expect(theme.getTheme().active.colorScheme).toBe('light')
+    expect(theme.getTheme().active.tokens).toMatchObject({
+      '--dsw-alias-bg-base': 'rgb(255, 245, 245)',
+      '--dsw-specific-national-day-decoration-display': 'block',
+      '--dsw-specific-sidebar-fill': 'rgb(139, 0, 0)',
+      '--dsw-specific-sidebar-new-session-label': 'rgb(139, 0, 0)',
+    })
+    expect(host.set).toHaveBeenCalledWith('preference', 'national-day')
   })
 
   it('adopts a published Host section without writing it back', () => {
@@ -75,12 +147,12 @@ describe('ThemeRuntime', () => {
   it('registered themes join the snapshot; disposing the active one resets to default', () => {
     const { theme, events, host } = make()
     const dispose = theme.register({ id: 'sepia', colorScheme: 'light', tokens: { '--dsw-alias-bg-base': 'red' } })
-    expect(theme.getTheme().themes.map(t => t.id)).toEqual(['light', 'dark', 'sepia'])
+    expect(theme.getTheme().themes.map(t => t.id)).toEqual(['light', 'dark', 'national-day', 'sepia'])
     theme.setTheme('sepia')
     expect(theme.getTheme().active.tokens['--dsw-alias-bg-base']).toBe('red')
     dispose()
     expect(theme.getTheme().preference).toBe('system')
-    expect(theme.getTheme().themes.map(t => t.id)).toEqual(['light', 'dark'])
+    expect(theme.getTheme().themes.map(t => t.id)).toEqual(['light', 'dark', 'national-day'])
     // Custom ids are in-process extension themes; only the built-in product
     // preferences cross the Host settings schema.
     expect(host.set).not.toHaveBeenCalled()
@@ -189,6 +261,38 @@ describe('ThemeRuntime', () => {
     expect(() => { override('red') }).toThrow(/bare string.*light.*dark/)
     for (const value of [1, null, {}, { light: 1, dark: 'dark' }, { light: 'light' }]) {
       expect(() => { override(value) }).toThrow(/must map to a \{ light, dark \} pair/)
+    }
+  })
+
+  it('resolves system to National Day during the local holiday window', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 9, 1, 12, 0, 0, 0))
+    const { ctx, theme } = make()
+    try {
+      expect(theme.getTheme().preference).toBe('system')
+      expect(theme.getTheme().active.id).toBe('national-day')
+      expect(theme.getTheme().active.colorScheme).toBe('light')
+      theme.setTheme('dark')
+      expect(theme.getTheme().active.id).toBe('dark')
+    } finally {
+      await ctx.fiber.dispose()
+      vi.useRealTimers()
+    }
+  })
+
+  it('rechecks the calendar at local midnight while system is active', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 8, 30, 23, 59, 59, 900))
+    const { ctx, theme, events } = make()
+    try {
+      expect(theme.getTheme().active.id).toBe('light')
+      await vi.advanceTimersByTimeAsync(200)
+      expect(theme.getTheme().active.id).toBe('national-day')
+      expect(events).toHaveLength(1)
+      expect(events[0]!.active.id).toBe('national-day')
+    } finally {
+      await ctx.fiber.dispose()
+      vi.useRealTimers()
     }
   })
 

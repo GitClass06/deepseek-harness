@@ -4,7 +4,7 @@
   grid-template-rows: 100%;
   height: 100%;
   overflow: hidden;
-  background: var(--dsw-alias-bg-base);
+  background: var(--dsw-specific-app-frame-fill, var(--dsw-alias-bg-base));
   /* Collapse/expand animates the tracks on the deepsuite sider curve
      (--ds-ease-in-out / --ds-transition-duration-slow, ui-theme base.css). */
   transition: grid-template-columns var(--ds-transition-duration-slow) var(--ds-ease-in-out);
@@ -23,6 +23,14 @@
 }
 
 .sidebarCol {
+  --dsw-alias-label-caption: var(--dsw-specific-sidebar-label-caption);
+  --dsw-alias-label-dimmed: var(--dsw-specific-sidebar-label-dimmed);
+  --dsw-alias-label-primary-bluish: var(--dsw-specific-sidebar-label-primary-bluish);
+  --dsw-alias-label-primary-dimmed: var(--dsw-specific-sidebar-label-primary-dimmed);
+  --dsw-alias-label-primary: var(--dsw-specific-sidebar-label-primary);
+  --dsw-alias-label-secondary: var(--dsw-specific-sidebar-label-secondary);
+  --dsw-alias-label-tertiary: var(--dsw-specific-sidebar-label-tertiary);
+
   min-width: 0;
   overflow: hidden;
   background: var(--dsw-specific-sidebar-fill);

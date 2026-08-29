@@ -71,6 +71,16 @@
    composition editor), and a content-sized panel would resize under the
    pointer on every nav click. Whatever does not fit scrolls in `.options`. */
 .panel {
+  --dsw-alias-label-caption: var(--dsw-specific-settings-panel-label-caption);
+  --dsw-alias-label-dimmed: var(--dsw-specific-settings-panel-label-dimmed);
+  --dsw-alias-label-primary-bluish: var(--dsw-specific-settings-panel-label-primary-bluish);
+  --dsw-alias-label-primary-dimmed: var(--dsw-specific-settings-panel-label-primary-dimmed);
+  --dsw-alias-label-primary: var(--dsw-specific-settings-panel-label-primary);
+  --dsw-alias-label-secondary: var(--dsw-specific-settings-panel-label-secondary);
+  --dsw-alias-label-tertiary: var(--dsw-specific-settings-panel-label-tertiary);
+  --dsw-specific-sidebar-nav-item-active: var(--dsw-specific-settings-panel-nav-item-active);
+  --dsw-specific-sidebar-nav-item-hover: var(--dsw-specific-settings-panel-nav-item-hover);
+
   position: relative;
   z-index: 1;
   display: flex;

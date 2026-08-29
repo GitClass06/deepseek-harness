@@ -2,8 +2,11 @@
 
 import z from '@deepseek-ai/schemastery'
 
+/** Built-in National Day theme preference and registered theme id. */
+export const NATIONAL_DAY_THEME_ID = 'national-day'
+
 /** Built-in preferences accepted at the registry and settings boundaries. */
-export const THEME_PREFERENCES = ['light', 'dark', 'system'] as const
+export const THEME_PREFERENCES = ['light', 'dark', 'system', NATIONAL_DAY_THEME_ID] as const
 
 /** Settings namespace owned by the theme plugin. */
 export const THEME_SETTINGS_NAMESPACE = 'ui-theme'
@@ -30,7 +33,7 @@ export const ThemeSettingsSchema: z<ThemeSettings> = z.object({
 
 /**
  * Narrow one wire or registry value to a persistable preference.
- * @param value - value crossing the settings or registry boundary.
+ * @param value - value read from settings or passed to the registry API.
  * @returns whether the value is a built-in preference.
  */
 export function isThemePreference(value: unknown): value is ThemePreference {

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 /** The theme bootstrap injection row and the resulting pre-plugin browser theme. */
 import { runInNewContext } from 'node:vm'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { NATIONAL_DAY_TOKENS } from '../src/builtin-themes.ts'
 import { bootThemeInjection } from '../src/boot-theme.ts'
 import type { ThemePreference } from '../src/theme-settings.ts'
 
@@ -14,14 +15,21 @@ function mockSystemDark(matches: boolean): void {
 function executeBootstrap(preference?: ThemePreference): void {
   const row = bootThemeInjection(preference)
   if (row.kind !== 'script') throw new Error('theme bootstrap row is not a script')
-  runInNewContext(row.text, { document, matchMedia: globalThis.matchMedia })
+  runInNewContext(row.text, { Date: globalThis.Date, document, matchMedia: globalThis.matchMedia })
 }
+
+beforeEach(() => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(2026, 7, 29, 12, 0, 0, 0))
+})
 
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+  vi.useRealTimers()
   document.documentElement.style.removeProperty('color-scheme')
   document.body.removeAttribute(DARK_ATTRIBUTE)
+  document.body.removeAttribute('style')
 })
 
 describe('theme bootstrap row', () => {
@@ -57,5 +65,30 @@ describe('theme bootstrap row', () => {
     executeBootstrap()
     expect(document.documentElement.style.colorScheme).toBe('light')
     expect(document.body.hasAttribute(DARK_ATTRIBUTE)).toBe(false)
+  })
+
+  it('applies a persisted National Day theme before plugins load', () => {
+    mockSystemDark(true)
+    executeBootstrap('national-day')
+    expect(document.documentElement.style.colorScheme).toBe('light')
+    expect(document.body.hasAttribute(DARK_ATTRIBUTE)).toBe(false)
+    expect(document.body.style.getPropertyValue('--dsw-alias-bg-base')).toBe(
+      NATIONAL_DAY_TOKENS['--dsw-alias-bg-base'],
+    )
+    expect(document.body.style.getPropertyValue('--dsw-specific-sidebar-fill')).toBe(
+      NATIONAL_DAY_TOKENS['--dsw-specific-sidebar-fill'],
+    )
+  })
+
+  it('lets system resolve to National Day during the local holiday window', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 9, 1, 8, 0, 0, 0))
+    mockSystemDark(true)
+    executeBootstrap('system')
+    expect(document.documentElement.style.colorScheme).toBe('light')
+    expect(document.body.hasAttribute(DARK_ATTRIBUTE)).toBe(false)
+    expect(document.body.style.getPropertyValue('--dsw-alias-bg-base')).toBe(
+      NATIONAL_DAY_TOKENS['--dsw-alias-bg-base'],
+    )
   })
 })

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/** AppearanceRow behavior: three cubes, selection follows the persisted
+/** AppearanceRow behavior: selection follows the persisted
  * preference, clicks drive setTheme. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
@@ -17,6 +17,7 @@ const COPY: Record<string, string> = {
   'appearance.light': 'Light',
   'appearance.dark': 'Dark',
   'appearance.system': 'System',
+  'appearance.nationalDay': 'National Day',
 }
 
 /** Empty global standard-kit hooks (the row reads neither). */
@@ -54,22 +55,25 @@ const pressed = (name: RegExp): string | null =>
   screen.getByRole('button', { name }).getAttribute('aria-pressed')
 
 describe('AppearanceRow', () => {
-  it('renders the title and three cubes with the preference cube selected', () => {
+  it('renders the title and cubes with the preference cube selected', () => {
     mount('dark')
     expect(screen.getByText('Appearance')).toBeDefined()
     expect(pressed(/Dark/)).toBe('true')
     expect(pressed(/Light/)).toBe('false')
     expect(pressed(/System/)).toBe('false')
+    expect(pressed(/National Day/)).toBe('false')
   })
 
   it('click drives setTheme; selection follows the store mirror, not the click echo', () => {
     const b = mount('dark')
     fireEvent.click(screen.getByRole('button', { name: /Light/ }))
     expect(b.setTheme).toHaveBeenCalledWith('light')
+    fireEvent.click(screen.getByRole('button', { name: /National Day/ }))
+    expect(b.setTheme).toHaveBeenCalledWith('national-day')
     // No store write yet: selection is unchanged.
     expect(pressed(/Dark/)).toBe('true')
-    act(() => { b.store.actions.sync('light', 1) })
-    expect(pressed(/Light/)).toBe('true')
+    act(() => { b.store.actions.sync('national-day', 1) })
+    expect(pressed(/National Day/)).toBe('true')
     expect(pressed(/Dark/)).toBe('false')
   })
 })
