@@ -22,7 +22,7 @@ import { SessionInputShell } from '../src/client/input/facade.ts'
 import { en, zh } from '../src/client/locales.ts'
 import { ConversationRoot } from '../src/client/skeleton/ConversationRoot.tsx'
 import { ConversationSession, ConversationSessionHeader } from '../src/client/skeleton/ConversationSession.tsx'
-import { HeroShell, NationalDayHeroDecor } from '../src/client/skeleton/EmptyHero.tsx'
+import { HeroShell, SeasonalHeroDecor } from '../src/client/skeleton/EmptyHero.tsx'
 import type { HeroShellProps } from '../src/client/skeleton/EmptyHero.tsx'
 import { InputBar } from '../src/client/skeleton/InputBar.tsx'
 import type { InputBarProps } from '../src/client/skeleton/InputBar.tsx'
@@ -294,11 +294,28 @@ describe('Hero chrome', () => {
     expect(renderSlot.mock.calls[0]?.[2]?.fallback).toBeTruthy()
   })
 
-  it('provides a non-interactive SVG decoration layer for the National Day theme', () => {
-    const view = render(<NationalDayHeroDecor className="decor" />)
-    const decor = view.container.querySelector('[data-national-day-decor]')
-    expect(decor?.tagName.toLowerCase()).toBe('svg')
-    expect(decor?.getAttribute('aria-hidden')).toBe('true')
+  it('provides non-interactive SVG decoration layers for seasonal themes', () => {
+    const view = render(<SeasonalHeroDecor className="decor" />)
+    for (const selector of [
+      '[data-new-year-decor]',
+      '[data-birthday-decor]',
+      '[data-spring-festival-decor]',
+      '[data-mid-autumn-decor]',
+      '[data-national-day-decor]',
+    ]) {
+      const decor = view.container.querySelector(selector)
+      expect(decor?.tagName.toLowerCase()).toBe('svg')
+      expect(decor?.getAttribute('aria-hidden')).toBe('true')
+    }
+    expect(view.container.querySelectorAll('[data-new-year-firework]')).toHaveLength(3)
+    expect(view.container.querySelectorAll('[data-new-year-confetti]')).toHaveLength(10)
+    expect(view.container.querySelectorAll('[data-birthday-balloon]')).toHaveLength(5)
+    expect(view.container.querySelectorAll('[data-birthday-cake]')).toHaveLength(1)
+    expect(view.container.querySelectorAll('[data-spring-festival-lantern]')).toHaveLength(4)
+    expect(view.container.querySelectorAll('[data-spring-festival-blossom]')).toHaveLength(3)
+    expect(view.container.querySelectorAll('[data-mid-autumn-moon]')).toHaveLength(1)
+    expect(view.container.querySelectorAll('[data-mid-autumn-cloud]')).toHaveLength(3)
+    expect(view.container.querySelectorAll('[data-mid-autumn-leaf]')).toHaveLength(4)
     expect(view.container.querySelectorAll('[data-national-day-star]')).toHaveLength(6)
     expect(view.container.querySelectorAll('[data-national-day-flag]')).toHaveLength(10)
   })

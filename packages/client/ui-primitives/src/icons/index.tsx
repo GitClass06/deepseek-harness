@@ -727,6 +727,72 @@ export const IconFollowsystemOutline16 = ({ size = 16, className }: IconProps) =
   </svg>
 )
 
+/** new_year_outline_16 (fireworks for the built-in seasonal theme) */
+export const IconNewYearOutline16 = ({ size = 16, className }: IconProps) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7.35 1.3H8.65V4.25H7.35V1.3Z" fill="currentColor" />
+    <path d="M7.35 11.75H8.65V14.7H7.35V11.75Z" fill="currentColor" />
+    <path d="M1.3 7.35H4.25V8.65H1.3V7.35Z" fill="currentColor" />
+    <path d="M11.75 7.35H14.7V8.65H11.75V7.35Z" fill="currentColor" />
+    <path d="M3.0403 3.95949L3.95953 3.04026L6.0455 5.12623L5.12627 6.04546L3.0403 3.95949Z" fill="currentColor" />
+    <path d="M9.95455 10.8738L10.8738 9.95455L12.9598 12.0405L12.0405 12.9598L9.95455 10.8738Z" fill="currentColor" />
+    <path d="M9.95455 5.12625L12.0405 3.04028L12.9598 3.95951L10.8738 6.04548L9.95455 5.12625Z" fill="currentColor" />
+    <path d="M3.0403 12.0405L5.12627 9.95454L6.0455 10.8738L3.95953 12.9597L3.0403 12.0405Z" fill="currentColor" />
+    <path d="M9.3 8C9.3 8.71797 8.71797 9.3 8 9.3C7.28203 9.3 6.7 8.71797 6.7 8C6.7 7.28203 7.28203 6.7 8 6.7C8.71797 6.7 9.3 7.28203 9.3 8Z" fill="currentColor" />
+  </svg>
+)
+
+/** birthday_outline_16 (cake and candle for the built-in seasonal theme) */
+export const IconBirthdayOutline16 = ({ size = 16, className }: IconProps) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7.35 3.05H8.65V6.05H7.35V3.05Z" fill="currentColor" />
+    <path d="M8 0.95C8.92 1.72 9.33 2.35 9.33 2.9C9.33 3.62 8.74 4.2 8 4.2C7.26 4.2 6.67 3.62 6.67 2.9C6.67 2.35 7.08 1.72 8 0.95Z" fill="currentColor" />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M3.35 6.05H12.65C13.45 6.05 14.1 6.7 14.1 7.5V9.02H1.9V7.5C1.9 6.7 2.55 6.05 3.35 6.05ZM3.35 7.35C3.27 7.35 3.2 7.42 3.2 7.5V7.72H12.8V7.5C12.8 7.42 12.73 7.35 12.65 7.35H3.35Z"
+      fill="currentColor"
+    />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2.4 8.95H13.6V12.3C13.6 13.35 12.75 14.2 11.7 14.2H4.3C3.25 14.2 2.4 13.35 2.4 12.3V8.95ZM3.7 10.25V12.3C3.7 12.63 3.97 12.9 4.3 12.9H11.7C12.03 12.9 12.3 12.63 12.3 12.3V10.25H10.85C10.55 10.85 9.93 11.25 9.2 11.25C8.69 11.25 8.23 11.05 7.9 10.72C7.57 11.05 7.11 11.25 6.6 11.25C5.87 11.25 5.25 10.85 4.95 10.25H3.7Z"
+      fill="currentColor"
+    />
+  </svg>
+)
+
+/** spring_festival_outline_16 (lantern for the built-in seasonal theme) */
+export const IconSpringFestivalOutline16 = ({ size = 16, className }: IconProps) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4.9 1.4H11.1V2.7H4.9V1.4Z" fill="currentColor" />
+    <path d="M4.9 13.3H11.1V14.6H4.9V13.3Z" fill="currentColor" />
+    <path d="M7.35 14.2H8.65V15.5H7.35V14.2Z" fill="currentColor" />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M8 2.45C10.42 2.45 12.38 4.85 12.38 7.78C12.38 10.72 10.42 13.1 8 13.1C5.58 13.1 3.62 10.72 3.62 7.78C3.62 4.85 5.58 2.45 8 2.45ZM8 3.75C6.34 3.75 4.92 5.53 4.92 7.78C4.92 10.03 6.34 11.8 8 11.8C9.66 11.8 11.08 10.03 11.08 7.78C11.08 5.53 9.66 3.75 8 3.75Z"
+      fill="currentColor"
+    />
+    <path d="M7.35 3.15H8.65V12.45H7.35V3.15Z" fill="currentColor" />
+    <path d="M2.05 7.15H4.25V8.45H2.05V7.15Z" fill="currentColor" />
+    <path d="M11.75 7.15H13.95V8.45H11.75V7.15Z" fill="currentColor" />
+  </svg>
+)
+
+/** mid_autumn_outline_16 (moon and cloud for the built-in seasonal theme) */
+export const IconMidAutumnOutline16 = ({ size = 16, className }: IconProps) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M8.65 1.25C6.68 1.77 5.22 3.57 5.22 5.7C5.22 8.24 7.28 10.3 9.82 10.3C11.05 10.3 12.16 9.82 12.99 9.03C12.38 11.03 10.52 12.48 8.32 12.48C5.63 12.48 3.45 10.3 3.45 7.61C3.45 4.93 5.63 2.75 8.32 2.75C8.43 2.75 8.54 2.75 8.65 2.76V1.25ZM7.35 2.97C5.85 3.39 4.75 4.76 4.75 6.39C4.75 8.36 6.35 9.96 8.32 9.96C8.87 9.96 9.39 9.83 9.86 9.61H9.82C6.56 9.61 3.92 6.96 3.92 3.7C3.92 3.66 3.92 3.62 3.92 3.58C4.83 3.17 5.77 2.95 6.75 2.95C6.95 2.95 7.15 2.96 7.35 2.97Z"
+      fill="currentColor"
+    />
+    <path d="M2.4 10.25C2.4 9.26 3.21 8.45 4.2 8.45H4.57C4.93 7.7 5.69 7.2 6.58 7.2C7.7 7.2 8.63 8.02 8.79 9.08H11.55C12.64 9.08 13.52 9.96 13.52 11.05C13.52 12.14 12.64 13.02 11.55 13.02H4.2C3.21 13.02 2.4 12.21 2.4 11.22V10.25ZM4.2 9.75C3.93 9.75 3.7 9.98 3.7 10.25V11.22C3.7 11.49 3.93 11.72 4.2 11.72H11.55C11.92 11.72 12.22 11.42 12.22 11.05C12.22 10.68 11.92 10.38 11.55 10.38H7.55V9.43C7.55 8.91 7.12 8.5 6.58 8.5C6.12 8.5 5.75 8.77 5.6 9.19L5.4 9.75H4.2Z" fill="currentColor" />
+  </svg>
+)
+
 /** national_day_outline_16 (flag plus stars for the built-in holiday theme) */
 export const IconNationalDayOutline16 = ({ size = 16, className }: IconProps) => (
   <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

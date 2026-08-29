@@ -87,6 +87,112 @@
   filter: drop-shadow(0 8px 18px rgba(222, 41, 16, 0.14));
 }
 
+.decorBlue {
+  fill: none;
+  stroke: var(--dsw-alias-brand-primary);
+  stroke-width: 5px;
+  stroke-linecap: round;
+  opacity: 0.42;
+  filter: drop-shadow(0 8px 18px rgba(37, 99, 235, 0.12));
+}
+
+.decorConfetti {
+  fill: var(--dsw-alias-brand-primary-invert);
+  opacity: 0.76;
+}
+
+.decorConfetti > :nth-child(even) {
+  fill: var(--dsw-alias-brand-primary);
+  opacity: 0.7;
+}
+
+.decorBalloonRose {
+  fill: var(--dsw-alias-brand-primary);
+  opacity: 0.56;
+  filter: drop-shadow(0 12px 24px rgba(172, 58, 82, 0.12));
+}
+
+.decorBalloonTeal {
+  fill: var(--dsw-alias-brand-primary-invert);
+  opacity: 0.58;
+  filter: drop-shadow(0 12px 24px rgba(78, 194, 186, 0.14));
+}
+
+.decorBalloonStrings {
+  fill: none;
+  stroke: var(--dsw-alias-brand-primary);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  opacity: 0.3;
+}
+
+.decorCake {
+  fill: var(--dsw-alias-brand-primary);
+  opacity: 0.58;
+  filter: drop-shadow(0 12px 24px rgba(172, 58, 82, 0.12));
+}
+
+.decorCakeTrim {
+  fill: none;
+  stroke: var(--dsw-alias-brand-primary-invert);
+  stroke-width: 8px;
+  stroke-linecap: round;
+}
+
+.decorCandle {
+  fill: var(--dsw-alias-brand-primary-invert);
+  opacity: 0.86;
+}
+
+.decorLanternLine {
+  fill: none;
+  stroke: var(--dsw-alias-brand-primary);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  opacity: 0.32;
+}
+
+.decorLanternRed {
+  fill: var(--dsw-alias-brand-primary);
+  opacity: 0.66;
+  filter: drop-shadow(0 12px 24px rgba(153, 27, 27, 0.14));
+}
+
+.decorLanternGold {
+  fill: var(--dsw-alias-brand-primary-invert);
+  opacity: 0.86;
+  filter: drop-shadow(0 12px 24px rgba(153, 27, 27, 0.1));
+}
+
+.decorBranch {
+  fill: none;
+  stroke: var(--dsw-alias-brand-primary);
+  stroke-width: 8px;
+  stroke-linecap: round;
+  opacity: 0.42;
+}
+
+.decorBranch [data-spring-festival-blossom] {
+  stroke: var(--dsw-alias-brand-primary-invert);
+  stroke-width: 10px;
+}
+
+.decorMoon {
+  fill: var(--dsw-alias-brand-primary-invert);
+  opacity: 0.62;
+  filter: drop-shadow(0 16px 28px rgba(143, 96, 11, 0.14));
+}
+
+.decorCloud {
+  fill: var(--dsw-alias-brand-primary);
+  opacity: 0.18;
+}
+
+.decorLeaf {
+  fill: var(--dsw-alias-brand-primary);
+  opacity: 0.36;
+}
+
 .decorBunting,
 .decorBuntingBottom {
   opacity: 0.78;

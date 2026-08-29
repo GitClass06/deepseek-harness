@@ -92,9 +92,11 @@ describe('ui-theme apply', () => {
     declareItems(before.slots)
     await before.ctx.plugin({ inject: [...inject], apply }).await()
     expect(before.locale.bind(SETTINGS_NS)('appearance.title')).toBe('外观')
+    expect(before.locale.bind(SETTINGS_NS)('appearance.newYear')).toBe('元旦')
     expect(before.locale.bind(SETTINGS_NS)('appearance.nationalDay')).toBe('国庆')
     before.locale.setLocale('en')
     expect(before.locale.bind(SETTINGS_NS)('appearance.title')).toBe('Appearance')
+    expect(before.locale.bind(SETTINGS_NS)('appearance.newYear')).toBe('New Year')
     expect(before.locale.bind(SETTINGS_NS)('appearance.nationalDay')).toBe('National Day')
     const entry = before.slots.entries(SLOT).find(e => e.component === AppearanceRow)!
     expect(entry.options).toMatchObject({ id: 'appearance', order: 10 })
@@ -125,10 +127,13 @@ describe('ui-theme apply', () => {
     face.setTheme('national-day')
     expect(theme.getTheme().preference).toBe('national-day')
     expect(instance.getSnapshot().preference).toBe('national-day')
+    face.setTheme('mid-autumn')
+    expect(theme.getTheme().preference).toBe('mid-autumn')
+    expect(instance.getSnapshot().preference).toBe('mid-autumn')
     face.setTheme('system')
     expect(theme.getTheme().preference).toBe('system')
     expect(instance.getSnapshot().preference).toBe('system')
-    await vi.waitFor(() => { expect(b.mutate).toHaveBeenCalledTimes(3) })
+    await vi.waitFor(() => { expect(b.mutate).toHaveBeenCalledTimes(4) })
   })
 
   it('keeps a clicked built-in preference while a stale settings refresh settles first', async () => {

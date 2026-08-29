@@ -1,6 +1,7 @@
 // Web e2e scenarios: the settings surface — the modal shell (trigger, nav,
 // section switching, both close paths), the Appearance preference row (the
-// real theme gestures — click 深色/国庆 and the whole cascade runs: ThemeRuntime preference -> Host settings
+// real theme gestures: click dark and a representative seasonal cube; the
+// whole cascade runs: ThemeRuntime preference -> Host settings
 // -> theme/change -> ui-layout's presenter -> body attribute -> alias token +
 // browser theme-color metadata)
 // the Language row and busy-state Enter preference (both Host-backed), plus
@@ -237,6 +238,8 @@ describe('web e2e: settings modal and General preferences', () => {
     await expect.poll(() => page.evaluate(() => document.body.hasAttribute('data-ds-dark-theme')), {
       timeout: 5_000,
     }).toBe(false)
+    await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
+      .toMatch(/ui-theme:\n\s+preference: system/)
     await page.keyboard.press('Escape')
     expect(tripwire.pageErrors).toEqual([])
   }, 90_000)
@@ -250,7 +253,22 @@ describe('web e2e: settings modal and General preferences', () => {
       legacy: string | null
       themeColor: string | null
       themeColorCount: number
-      nationalDayDecorDisplay: string | null
+      seasonalDecorDisplay: {
+        newYear: string | null
+        birthday: string | null
+        springFestival: string | null
+        midAutumn: string | null
+        nationalDay: string | null
+      }
+      newYearConfettiCount: number
+      newYearFireworkCount: number
+      birthdayBalloonCount: number
+      birthdayCakeCount: number
+      springFestivalLanternCount: number
+      springFestivalBlossomCount: number
+      midAutumnMoonCount: number
+      midAutumnCloudCount: number
+      midAutumnLeafCount: number
       nationalDayFlagCount: number
       nationalDayStarCount: number
       newSessionBackground: string | null
@@ -263,16 +281,35 @@ describe('web e2e: settings modal and General preferences', () => {
       const computed = getComputedStyle(document.body)
       const newSession = document.querySelector<HTMLElement>('button[class*="newSession"]')
       const newSessionStyle = newSession === null ? undefined : getComputedStyle(newSession)
-      const decor = document.querySelector<SVGSVGElement>('[data-national-day-decor]')
+      const display = (selector: string): string | null => {
+        const decor = document.querySelector<SVGSVGElement>(selector)
+        return decor === null ? null : getComputedStyle(decor).display
+      }
+      const count = (selector: string): number => document.querySelectorAll(selector).length
       return {
         attr: document.body.hasAttribute('data-ds-dark-theme'),
         background: computed.backgroundColor,
         legacy: localStorage.getItem('dsh.theme'),
         themeColor: metas[0]?.content ?? null,
         themeColorCount: metas.length,
-        nationalDayDecorDisplay: decor === null ? null : getComputedStyle(decor).display,
-        nationalDayFlagCount: decor?.querySelectorAll('[data-national-day-flag]').length ?? 0,
-        nationalDayStarCount: decor?.querySelectorAll('[data-national-day-star]').length ?? 0,
+        seasonalDecorDisplay: {
+          newYear: display('[data-new-year-decor]'),
+          birthday: display('[data-birthday-decor]'),
+          springFestival: display('[data-spring-festival-decor]'),
+          midAutumn: display('[data-mid-autumn-decor]'),
+          nationalDay: display('[data-national-day-decor]'),
+        },
+        newYearConfettiCount: count('[data-new-year-confetti]'),
+        newYearFireworkCount: count('[data-new-year-firework]'),
+        birthdayBalloonCount: count('[data-birthday-balloon]'),
+        birthdayCakeCount: count('[data-birthday-cake]'),
+        springFestivalLanternCount: count('[data-spring-festival-lantern]'),
+        springFestivalBlossomCount: count('[data-spring-festival-blossom]'),
+        midAutumnMoonCount: count('[data-mid-autumn-moon]'),
+        midAutumnCloudCount: count('[data-mid-autumn-cloud]'),
+        midAutumnLeafCount: count('[data-mid-autumn-leaf]'),
+        nationalDayFlagCount: count('[data-national-day-flag]'),
+        nationalDayStarCount: count('[data-national-day-star]'),
         newSessionBackground: newSessionStyle?.backgroundColor ?? null,
         newSessionColor: newSessionStyle?.color ?? null,
         sidebarFill: computed.getPropertyValue('--dsw-specific-sidebar-fill').trim(),
@@ -283,6 +320,11 @@ describe('web e2e: settings modal and General preferences', () => {
       expect(state.themeColorCount).toBe(1)
       expect(state.background).not.toBe('rgba(0, 0, 0, 0)')
       expect(state.themeColor).toBe(state.background)
+    }
+    const expectOnlyDecor = (state: ThemeState, key: keyof ThemeState['seasonalDecorDisplay']): void => {
+      for (const [name, display] of Object.entries(state.seasonalDecorDisplay)) {
+        expect(display).toBe(name === key ? 'block' : 'none')
+      }
     }
     // Pin the OS scheme to light so the default `system` preference resolves
     // light and the dark flip below is unambiguously the gesture's doing.
@@ -308,52 +350,67 @@ describe('web e2e: settings modal and General preferences', () => {
     await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
       .toMatch(/ui-theme:\n\s+preference: dark/)
 
-    const nationalDayCube = dialog.getByRole('button', { name: '国庆' })
-    await nationalDayCube.click()
-    await expect.poll(() => nationalDayCube.getAttribute('aria-pressed'), { timeout: 5_000 }).toBe('true')
-    const nationalDay = await readState()
-    expect(nationalDay.attr).toBe(false)
-    expect(nationalDay.legacy).toBeNull()
-    expect(nationalDay.nationalDayDecorDisplay).toBe('block')
-    expect(nationalDay.nationalDayFlagCount).toBe(10)
-    expect(nationalDay.nationalDayStarCount).toBe(6)
-    expect(nationalDay.newSessionBackground).toBe('rgb(255, 255, 255)')
-    expect(nationalDay.newSessionColor).toBe('rgb(139, 0, 0)')
-    expect(nationalDay.token).toBe('rgb(255, 245, 245)')
-    expect(nationalDay.sidebarFill).toBe('rgb(139, 0, 0)')
-    expect(nationalDay.token).not.toBe(dark.token)
-    expectThemeColorSynchronized(nationalDay)
+    const themeLabels = ['浅色', '深色', '元旦', '春节', '中秋', '国庆', '跟随系统'] as const
+    const orderedThemeLabels = await dialog.getByRole('button').evaluateAll((buttons, expected) => {
+      const wanted = new Set(expected as readonly string[])
+      return buttons
+        .map(button => button.textContent?.trim() ?? '')
+        .filter(label => wanted.has(label))
+    }, themeLabels)
+    expect(orderedThemeLabels).toEqual([...themeLabels])
+    for (const label of themeLabels) {
+      const themeButton = dialog.getByRole('button', { name: label })
+      await expect.poll(() => themeButton.isVisible(), { timeout: 5_000 }).toBe(true)
+    }
+    const seasonalCube = dialog.getByRole('button', { name: '中秋' })
+    await seasonalCube.click()
+    await expect.poll(() => seasonalCube.getAttribute('aria-pressed'), { timeout: 5_000 }).toBe('true')
+    const seasonal = await readState()
+    expect(seasonal.attr).toBe(false)
+    expect(seasonal.legacy).toBeNull()
+    expectOnlyDecor(seasonal, 'midAutumn')
+    expect(seasonal.newSessionBackground).toBe('rgb(255, 255, 255)')
+    expect(seasonal.newSessionColor).toBe('rgb(24, 78, 94)')
+    expect(seasonal.token).toBe('rgb(243, 250, 249)')
+    expect(seasonal.sidebarFill).toBe('rgb(24, 78, 94)')
+    expect(seasonal.midAutumnMoonCount).toBe(1)
+    expect(seasonal.midAutumnCloudCount).toBe(3)
+    expect(seasonal.midAutumnLeafCount).toBe(4)
+    expect(seasonal.token).not.toBe(dark.token)
+    expectThemeColorSynchronized(seasonal)
+    await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
+      .toMatch(/ui-theme:\n\s+preference: mid-autumn/)
     const dialogTokens = await dialog.evaluate((element) => {
       const computed = getComputedStyle(element)
       return {
         labelPrimary: computed.getPropertyValue('--dsw-alias-label-primary').trim(),
-        navActive: computed.getPropertyValue('--dsw-specific-sidebar-nav-item-active').trim(),
+        navActive: computed.getPropertyValue('--dsw-specific-settings-panel-nav-item-active').trim(),
       }
     })
     expect(dialogTokens).toEqual({
-      labelPrimary: 'rgb(92, 0, 0)',
-      navActive: 'rgba(255, 215, 0, 0.24)',
+      labelPrimary: 'rgb(20, 55, 63)',
+      navActive: 'rgba(246, 196, 83, 0.24)',
     })
     await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
-      .toMatch(/ui-theme:\n\s+preference: national-day/)
+      .toMatch(/ui-theme:\n\s+preference: mid-autumn/)
     await page.keyboard.press('Escape')
 
-    // Reload: the holiday preference survives the background Host read + presenter update.
+    // Reload: the seasonal preference survives the background Host read + presenter update.
     const warningStart = tripwire.warnings.length
     await page.reload({ waitUntil: 'load' })
     await page.waitForSelector('[class*="frame"]', { timeout: 30_000 })
     acknowledgeReloadConnectionLoss(tripwire, warningStart)
     await page.emulateMedia({ colorScheme: 'light' })
-    await expect.poll(async () => (await readState()).token, { timeout: 5_000 }).toBe('rgb(255, 245, 245)')
+    await expect.poll(async () => (await readState()).token, { timeout: 5_000 }).toBe('rgb(243, 250, 249)')
     const reloaded = await readState()
     expect(reloaded.attr).toBe(false)
-    expect(reloaded.sidebarFill).toBe('rgb(139, 0, 0)')
+    expect(reloaded.sidebarFill).toBe('rgb(24, 78, 94)')
     expect(reloaded.legacy).toBeNull()
     expectThemeColorSynchronized(reloaded)
 
     // A second live Host binds another ephemeral port but shares the same
     // user-settings home. Its fresh origin has no theme localStorage and still
-    // converges to National Day before the settings dialog opens.
+    // converges to the persisted seasonal theme before the settings dialog opens.
     const second = await launchWebScaffold({ harnessHome: scaffold.harnessHome })
     const secondPage = await browser.newPage({ viewport: { width: 1680, height: 1000 }, locale: ZH_BROWSER_LOCALE })
     const secondTripwire = watchConsole(secondPage)
@@ -362,10 +419,10 @@ describe('web e2e: settings modal and General preferences', () => {
       await secondPage.emulateMedia({ colorScheme: 'light' })
       await secondPage.goto(second.baseUrl, { waitUntil: 'load' })
       await secondPage.waitForSelector('[class*="frame"]', { timeout: 30_000 })
-      await expect.poll(async () => (await readState(secondPage)).token, { timeout: 5_000 }).toBe('rgb(255, 245, 245)')
+      await expect.poll(async () => (await readState(secondPage)).token, { timeout: 5_000 }).toBe('rgb(243, 250, 249)')
       const secondState = await readState(secondPage)
       expect(secondState.attr).toBe(false)
-      expect(secondState.sidebarFill).toBe('rgb(139, 0, 0)')
+      expect(secondState.sidebarFill).toBe('rgb(24, 78, 94)')
       expect(secondState.legacy).toBeNull()
       expectThemeColorSynchronized(secondState)
       expect(secondTripwire.pageErrors).toEqual([])
@@ -375,7 +432,7 @@ describe('web e2e: settings modal and General preferences', () => {
       await second.close()
     }
 
-    // `system` follows the emulated OS scheme outside the local holiday window.
+    // `system` follows the emulated OS scheme outside the local event window.
     await page.getByRole('button', { name: '设置', exact: true }).click()
     const systemCube = page.getByRole('dialog', { name: '设置' }).getByRole('button', { name: '跟随系统' })
     await systemCube.click()
@@ -383,17 +440,32 @@ describe('web e2e: settings modal and General preferences', () => {
     await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(false)
     expectThemeColorSynchronized(await readState())
     await page.emulateMedia({ colorScheme: 'dark' })
-    const holidayWindow = await page.evaluate(() => {
+    const eventWindow = await page.evaluate(() => {
       const date = new Date()
-      return date.getMonth() === 9 && date.getDate() >= 1 && date.getDate() <= 7
+      const month = date.getMonth()
+      const day = date.getDate()
+      if (month === 0 && day === 1) return true
+      if (month === 6 && day === 17) return true
+      if (month === 9 && day >= 1 && day <= 7) return true
+      try {
+        const parts = new Intl.DateTimeFormat('en-US-u-ca-chinese', { month: 'numeric', day: 'numeric' })
+          .formatToParts(date)
+        const lunarMonth = Number.parseInt(parts.find(part => part.type === 'month')?.value ?? '', 10)
+        const lunarDay = Number.parseInt(parts.find(part => part.type === 'day')?.value ?? '', 10)
+        return (lunarMonth === 1 && lunarDay === 1) || (lunarMonth === 8 && lunarDay === 15)
+      } catch {
+        return false
+      }
     })
-    await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(!holidayWindow)
+    await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(!eventWindow)
     expectThemeColorSynchronized(await readState())
     // Restore for the specs that follow: light preference beats the emulated
     // dark OS scheme, leaving the shared page in the light default.
     await page.getByRole('dialog', { name: '设置' }).getByRole('button', { name: '浅色' }).click()
     await expect.poll(async () => (await readState()).attr, { timeout: 5_000 }).toBe(false)
     expectThemeColorSynchronized(await readState())
+    await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
+      .toMatch(/ui-theme:\n\s+preference: light/)
     await page.keyboard.press('Escape')
     expect(tripwire.pageErrors).toEqual([])
   }, 90_000)

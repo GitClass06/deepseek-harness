@@ -1,6 +1,7 @@
 /**
  * Browser theme registry over the `--dsw-*` token stylesheets. The service
- * owns the live theme preference (light/dark/system/national-day), resolves
+ * owns the live theme preference (light/dark/system plus product seasonal
+ * themes), resolves
  * `system` through the holiday calendar and `prefers-color-scheme`, and
  * publishes immutable snapshots; it never touches the DOM — ui-layout's
  * presenter consumes the resolved snapshot. The Host settings scope loads and
@@ -21,11 +22,9 @@ import { AppearanceRow } from './AppearanceRow.tsx'
 import { createAppearanceRowStore } from './settings-store.ts'
 import { installThemeStyles } from './styles.ts'
 import { en, zh, type ThemeKey } from './locales.ts'
+import { calendarThemePreferenceAt, msUntilNextLocalDate, SEASONAL_THEME_TOKENS } from '../builtin-themes.ts'
 import {
-  calendarThemePreferenceAt, msUntilNextLocalDate, NATIONAL_DAY_TOKENS,
-} from '../builtin-themes.ts'
-import {
-  DEFAULT_PREFERENCE, isThemePreference, NATIONAL_DAY_THEME_ID,
+  DEFAULT_PREFERENCE, isThemePreference,
   THEME_PREFERENCE_FIELD, THEME_SETTINGS_NAMESPACE,
   type ThemePreference, type ThemeSettings,
 } from '../theme-settings.ts'
@@ -33,8 +32,11 @@ import {
 export type { AppearanceRowComponentProps, AppearanceRowInjected } from './AppearanceRow.tsx'
 export type { AppearanceRowState } from './settings-store.ts'
 export type { ThemeKey } from './locales.ts'
-export { NATIONAL_DAY_THEME_ID } from '../theme-settings.ts'
-export type { ThemePreference, ThemeSettings } from '../theme-settings.ts'
+export {
+  BIRTHDAY_THEME_ID, MID_AUTUMN_THEME_ID, NATIONAL_DAY_THEME_ID, NEW_YEAR_THEME_ID,
+  SEASONAL_THEME_IDS, SPRING_FESTIVAL_THEME_ID,
+} from '../theme-settings.ts'
+export type { SeasonalThemePreference, ThemePreference, ThemeSettings } from '../theme-settings.ts'
 
 /** Namespace owning this feature's settings-row copy. */
 export const SETTINGS_NS = 'settings.theme'
@@ -126,7 +128,9 @@ declare module '@deepseek-ai/cordis' {
 const BUILTIN_THEMES: readonly ThemeDefinition[] = Object.freeze([
   Object.freeze({ id: 'light', colorScheme: 'light' as const, tokens: Object.freeze({}) }),
   Object.freeze({ id: 'dark', colorScheme: 'dark' as const, tokens: Object.freeze({}) }),
-  Object.freeze({ id: NATIONAL_DAY_THEME_ID, colorScheme: 'light' as const, tokens: NATIONAL_DAY_TOKENS }),
+  ...Object.entries(SEASONAL_THEME_TOKENS).map(([id, tokens]) => (
+    Object.freeze({ id, colorScheme: 'light' as const, tokens })
+  )),
 ])
 
 const BUILTIN_INSPECT_TOKENS: readonly ThemeTokenInspection[] = Object.freeze([
@@ -144,7 +148,10 @@ const BUILTIN_INSPECT_TOKENS: readonly ThemeTokenInspection[] = Object.freeze([
   { name: '--dsw-alias-state-success-primary', description: 'Primary success state color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-state-success-primary' },
   { name: '--dsw-alias-state-warn-primary', description: 'Primary warning state color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-alias-state-warn-primary' },
   { name: '--dsw-specific-conversation-fill', description: 'Conversation column background.', valueType: 'CSS background', requiresLightAndDark: true, cssVariable: '--dsw-specific-conversation-fill' },
+  { name: '--dsw-specific-birthday-decoration-display', description: 'Birthday hero decoration display mode.', valueType: 'CSS display', requiresLightAndDark: true, cssVariable: '--dsw-specific-birthday-decoration-display' },
+  { name: '--dsw-specific-mid-autumn-decoration-display', description: 'Mid-Autumn hero decoration display mode.', valueType: 'CSS display', requiresLightAndDark: true, cssVariable: '--dsw-specific-mid-autumn-decoration-display' },
   { name: '--dsw-specific-national-day-decoration-display', description: 'National Day hero decoration display mode.', valueType: 'CSS display', requiresLightAndDark: true, cssVariable: '--dsw-specific-national-day-decoration-display' },
+  { name: '--dsw-specific-new-year-decoration-display', description: "New Year's Day hero decoration display mode.", valueType: 'CSS display', requiresLightAndDark: true, cssVariable: '--dsw-specific-new-year-decoration-display' },
   { name: '--dsw-specific-sidebar-fill', description: 'Sidebar column and title-row background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-fill' },
   { name: '--dsw-specific-sidebar-label-primary', description: 'Sidebar primary text color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-label-primary' },
   { name: '--dsw-specific-sidebar-new-session-border', description: 'Sidebar New Session button border.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-border' },
@@ -152,6 +159,7 @@ const BUILTIN_INSPECT_TOKENS: readonly ThemeTokenInspection[] = Object.freeze([
   { name: '--dsw-specific-sidebar-new-session-hover', description: 'Sidebar New Session button hover background.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-hover' },
   { name: '--dsw-specific-sidebar-new-session-label', description: 'Sidebar New Session text and icon color.', valueType: 'CSS color', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-label' },
   { name: '--dsw-specific-sidebar-new-session-shadow', description: 'Sidebar New Session button shadow.', valueType: 'CSS shadow', requiresLightAndDark: true, cssVariable: '--dsw-specific-sidebar-new-session-shadow' },
+  { name: '--dsw-specific-spring-festival-decoration-display', description: 'Spring Festival hero decoration display mode.', valueType: 'CSS display', requiresLightAndDark: true, cssVariable: '--dsw-specific-spring-festival-decoration-display' },
 ])
 
 /**

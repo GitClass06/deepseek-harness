@@ -17,6 +17,9 @@ const COPY: Record<string, string> = {
   'appearance.light': 'Light',
   'appearance.dark': 'Dark',
   'appearance.system': 'System',
+  'appearance.newYear': 'New Year',
+  'appearance.springFestival': 'Spring Festival',
+  'appearance.midAutumn': 'Mid-Autumn',
   'appearance.nationalDay': 'National Day',
 }
 
@@ -53,14 +56,28 @@ function mount(preference: ThemePreference = 'system') {
 
 const pressed = (name: RegExp): string | null =>
   screen.getByRole('button', { name }).getAttribute('aria-pressed')
+const buttonLabels = (): string[] =>
+  screen.getAllByRole('button').map(button => button.textContent ?? '')
 
 describe('AppearanceRow', () => {
   it('renders the title and cubes with the preference cube selected', () => {
     mount('dark')
     expect(screen.getByText('Appearance')).toBeDefined()
+    expect(buttonLabels()).toEqual([
+      'Light',
+      'Dark',
+      'New Year',
+      'Spring Festival',
+      'Mid-Autumn',
+      'National Day',
+      'System',
+    ])
     expect(pressed(/Dark/)).toBe('true')
     expect(pressed(/Light/)).toBe('false')
     expect(pressed(/System/)).toBe('false')
+    expect(pressed(/New Year/)).toBe('false')
+    expect(pressed(/Spring Festival/)).toBe('false')
+    expect(pressed(/Mid-Autumn/)).toBe('false')
     expect(pressed(/National Day/)).toBe('false')
   })
 
@@ -68,6 +85,8 @@ describe('AppearanceRow', () => {
     const b = mount('dark')
     fireEvent.click(screen.getByRole('button', { name: /Light/ }))
     expect(b.setTheme).toHaveBeenCalledWith('light')
+    fireEvent.click(screen.getByRole('button', { name: /Spring Festival/ }))
+    expect(b.setTheme).toHaveBeenCalledWith('spring-festival')
     fireEvent.click(screen.getByRole('button', { name: /National Day/ }))
     expect(b.setTheme).toHaveBeenCalledWith('national-day')
     // No store write yet: selection is unchanged.

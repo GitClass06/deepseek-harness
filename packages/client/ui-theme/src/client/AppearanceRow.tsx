@@ -7,10 +7,17 @@
  */
 import clsx from 'clsx'
 import {
-  IconDarkOutline16, IconFollowsystemOutline16, IconLightOutline16, IconNationalDayOutline16,
+  IconDarkOutline16, IconFollowsystemOutline16, IconLightOutline16,
+  IconMidAutumnOutline16, IconNationalDayOutline16, IconNewYearOutline16, IconSpringFestivalOutline16,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-client-ui-slots'
-import type { ThemePreference } from '../theme-settings.ts'
+import {
+  MID_AUTUMN_THEME_ID,
+  NATIONAL_DAY_THEME_ID,
+  NEW_YEAR_THEME_ID,
+  SPRING_FESTIVAL_THEME_ID,
+  type ThemePreference,
+} from '../theme-settings.ts'
 import type { ThemeKey } from './locales.ts'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { createAppearanceRowStore } from './settings-store.ts'
@@ -27,12 +34,15 @@ export type AppearanceRowComponentProps =
   PropsRuntime<'settings.general.item'> & PropsStore<ReturnType<typeof createAppearanceRowStore>>
   & PropsLocale<'settings.theme'> & AppearanceRowInjected
 
-/** Cube order starts with the original figma trio, followed by product themes. */
+/** Cube order keeps direct choices first and the automatic system choice last. */
 const CUBES: readonly { id: ThemePreference; labelKey: ThemeKey; Icon: typeof IconLightOutline16 }[] = [
   { id: 'light', labelKey: 'appearance.light', Icon: IconLightOutline16 },
   { id: 'dark', labelKey: 'appearance.dark', Icon: IconDarkOutline16 },
+  { id: NEW_YEAR_THEME_ID, labelKey: 'appearance.newYear', Icon: IconNewYearOutline16 },
+  { id: SPRING_FESTIVAL_THEME_ID, labelKey: 'appearance.springFestival', Icon: IconSpringFestivalOutline16 },
+  { id: MID_AUTUMN_THEME_ID, labelKey: 'appearance.midAutumn', Icon: IconMidAutumnOutline16 },
+  { id: NATIONAL_DAY_THEME_ID, labelKey: 'appearance.nationalDay', Icon: IconNationalDayOutline16 },
   { id: 'system', labelKey: 'appearance.system', Icon: IconFollowsystemOutline16 },
-  { id: 'national-day', labelKey: 'appearance.nationalDay', Icon: IconNationalDayOutline16 },
 ]
 
 /**

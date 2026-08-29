@@ -36,12 +36,21 @@
   - button "Dark":
     - img
     - text: Dark
-  - button "System" [pressed]:
+  - button "New Year":
     - img
-    - text: System
+    - text: New Year
+  - button "Spring Festival":
+    - img
+    - text: Spring Festival
+  - button "Mid-Autumn":
+    - img
+    - text: Mid-Autumn
   - button "National Day":
     - img
     - text: National Day
+  - button "System" [pressed]:
+    - img
+    - text: System
   - text: Enter behavior while busy Busy only; Cmd/Ctrl+Enter uses the other behavior
   - button "Queue":
     - text: Queue

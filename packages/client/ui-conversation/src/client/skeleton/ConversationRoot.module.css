@@ -26,14 +26,33 @@
   --dsh-composer-dock-inset: 8px;
 }
 
-.nationalDayDecor {
+.seasonalDecor {
   position: absolute;
   inset: 0;
   z-index: 0;
-  display: var(--dsw-specific-national-day-decoration-display, none);
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+.seasonalDecor[data-new-year-decor] {
+  display: var(--dsw-specific-new-year-decoration-display, none);
+}
+
+.seasonalDecor[data-birthday-decor] {
+  display: var(--dsw-specific-birthday-decoration-display, none);
+}
+
+.seasonalDecor[data-spring-festival-decor] {
+  display: var(--dsw-specific-spring-festival-decoration-display, none);
+}
+
+.seasonalDecor[data-mid-autumn-decor] {
+  display: var(--dsw-specific-mid-autumn-decoration-display, none);
+}
+
+.seasonalDecor[data-national-day-decor] {
+  display: var(--dsw-specific-national-day-decoration-display, none);
 }
 
 .header {

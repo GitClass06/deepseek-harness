@@ -219,6 +219,10 @@ body {
   --dsw-specific-sidebar-new-session-hover: var(--dsw-alias-button-floating-hover);
   --dsw-specific-sidebar-new-session-label: var(--dsw-alias-label-primary);
   --dsw-specific-sidebar-new-session-shadow: none;
+  --dsw-specific-new-year-decoration-display: none;
+  --dsw-specific-birthday-decoration-display: none;
+  --dsw-specific-spring-festival-decoration-display: none;
+  --dsw-specific-mid-autumn-decoration-display: none;
   --dsw-specific-national-day-decoration-display: none;
   --dsw-specific-settings-panel-label-caption: var(--dsw-static-neutral-bluish-400);
   --dsw-specific-settings-panel-label-dimmed: var(--dsw-static-neutral-bluish-200);
@@ -333,6 +337,10 @@ body[data-ds-dark-theme] {
   --dsw-specific-sidebar-new-session-hover: var(--dsw-alias-button-floating-hover);
   --dsw-specific-sidebar-new-session-label: var(--dsw-alias-label-primary);
   --dsw-specific-sidebar-new-session-shadow: none;
+  --dsw-specific-new-year-decoration-display: none;
+  --dsw-specific-birthday-decoration-display: none;
+  --dsw-specific-spring-festival-decoration-display: none;
+  --dsw-specific-mid-autumn-decoration-display: none;
   --dsw-specific-national-day-decoration-display: none;
   --dsw-specific-settings-panel-label-caption: var(--dsw-static-neutral-bluish-600);
   --dsw-specific-settings-panel-label-dimmed: var(--dsw-static-neutral-bluish-750);

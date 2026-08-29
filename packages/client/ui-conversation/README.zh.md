@@ -10,7 +10,7 @@
 
 会话壳根节点会先读取可选的 `--dsw-specific-conversation-fill` 背景 token，再回退到 `--dsw-alias-bg-base`。季节性主题因此可以重绘常驻会话表面，而不替换页头、滚动容器或编辑器布局。
 
-Hero 区域还包含一个非交互的 `NationalDayHeroDecor` SVG 层。它默认通过 `--dsw-specific-national-day-decoration-display` 保持隐藏；国庆主题启用该 token 后，会在现有控件后方显示五星和彩旗装饰，而不改变这些控件的布局。
+Hero 区域还包含非交互的 `SeasonalHeroDecor` SVG 层。它们默认通过季节性 `--dsw-specific-*-decoration-display` token 保持隐藏；当前事件主题只启用一个层，让元旦烟花和纸屑、生日气球和蛋糕、春节灯笼和花枝、中秋月亮和云纹，或国庆五星和彩旗出现在现有控件后方，而不改变这些控件的布局。
 
 别的插件可以经 `ctx.conversation.blocks` 让某个会话的编辑器变为惰性：它设置一个携带自己本地化理由的 block，输入栏就渲染同一个禁用的 textarea，并把该理由作为 placeholder——复用无 Workspace 时的那套姿态。推送方向是约束而非偏好：知道某会话发不出消息的插件（ui-model-selection，在没有适配器服务其路由时）本就依赖本包，因此本包读不到它们。模型 seat 是 block 唯一保留可用的控件——这份约定里的每个 block 都靠选模型来解除，把它一起锁上会让编辑器索要它自己拦下的那件事。block 只是提示性设计；无论客户端禁用了什么，宿主都会拒绝一个它无法路由的提示词。两者同时成立时以无 Workspace 姿态为准，因为选 Workspace 是更靠前的前提。
 

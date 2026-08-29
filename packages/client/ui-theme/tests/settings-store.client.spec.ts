@@ -12,8 +12,8 @@ describe('createAppearanceRowStore', () => {
     const store = createAppearanceRowStore().create()
     store.actions.sync('dark', 0)
     expect(store.getSnapshot()).toEqual({ preference: 'dark', revision: 0 })
-    store.actions.sync('national-day', 2)
-    expect(store.getSnapshot().preference).toBe('national-day')
+    store.actions.sync('mid-autumn', 2)
+    expect(store.getSnapshot().preference).toBe('mid-autumn')
     expect(store.getSnapshot().revision).toBe(2)
   })
 

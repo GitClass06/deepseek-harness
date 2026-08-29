@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-08-29-seasonal-event-themes.md
+2026-08-29-seasonal-event-themes.md: 8cb751f900aee6b95ef27748ae45786376a3775e
+2026-08-29-seasonal-event-themes.zh.md: ef8fc7d1e795699ffe5266f07a61b96a29ab9e5a

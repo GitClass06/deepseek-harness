@@ -36,12 +36,21 @@
   - button "深色":
     - img
     - text: 深色
-  - button "跟随系统" [pressed]:
+  - button "元旦":
     - img
-    - text: 跟随系统
+    - text: 元旦
+  - button "春节":
+    - img
+    - text: 春节
+  - button "中秋":
+    - img
+    - text: 中秋
   - button "国庆":
     - img
     - text: 国庆
+  - button "跟随系统" [pressed]:
+    - img
+    - text: 跟随系统
   - text: 繁忙时 Enter 键行为 仅在智能体运行时生效；Cmd/Ctrl+Enter 使用另一行为
   - button "排队发送":
     - text: 排队发送

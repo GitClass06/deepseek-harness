@@ -8,6 +8,23 @@ import type {
   ThemeTokenOverrides,
 } from '@deepseek-ai/dsh-client-ui-theme/client'
 import { ThemeRuntime } from '@deepseek-ai/dsh-client-ui-theme/client'
+import {
+  BIRTHDAY_TOKENS,
+  MID_AUTUMN_TOKENS,
+  NATIONAL_DAY_TOKENS,
+  NEW_YEAR_TOKENS,
+  SPRING_FESTIVAL_TOKENS,
+} from '../src/builtin-themes.ts'
+import {
+  BIRTHDAY_THEME_ID,
+  MID_AUTUMN_THEME_ID,
+  NATIONAL_DAY_THEME_ID,
+  NEW_YEAR_THEME_ID,
+  SEASONAL_THEME_IDS,
+  SPRING_FESTIVAL_THEME_ID,
+} from '../src/theme-settings.ts'
+
+const BUILTIN_THEME_IDS = ['light', 'dark', ...SEASONAL_THEME_IDS]
 
 const make = (host = stubSettingsScope<ThemeSettings>()): {
   ctx: Context
@@ -46,7 +63,7 @@ describe('ThemeRuntime', () => {
     // jsdom matchMedia is absent; system resolves to light.
     expect(snapshot.active.id).toBe('light')
     expect(snapshot.active.colorScheme).toBe('light')
-    expect(snapshot.themes.map(t => t.id)).toEqual(['light', 'dark', 'national-day'])
+    expect(snapshot.themes.map(t => t.id)).toEqual(BUILTIN_THEME_IDS)
   })
 
   it('setTheme switches, writes through the scope, republishes, and keeps DOM untouched', () => {
@@ -105,19 +122,25 @@ describe('ThemeRuntime', () => {
     expect(events.map(event => event.preference)).toEqual(['national-day', 'light'])
   })
 
-  it('persists National Day as a built-in light theme with holiday tokens', () => {
+  it.each([
+    [NEW_YEAR_THEME_ID, NEW_YEAR_TOKENS, 'rgb(244, 248, 255)', '--dsw-specific-new-year-decoration-display', 'rgb(28, 48, 95)'],
+    [BIRTHDAY_THEME_ID, BIRTHDAY_TOKENS, 'rgb(255, 246, 249)', '--dsw-specific-birthday-decoration-display', 'rgb(118, 52, 75)'],
+    [SPRING_FESTIVAL_THEME_ID, SPRING_FESTIVAL_TOKENS, 'rgb(255, 247, 237)', '--dsw-specific-spring-festival-decoration-display', 'rgb(134, 25, 38)'],
+    [MID_AUTUMN_THEME_ID, MID_AUTUMN_TOKENS, 'rgb(243, 250, 249)', '--dsw-specific-mid-autumn-decoration-display', 'rgb(24, 78, 94)'],
+    [NATIONAL_DAY_THEME_ID, NATIONAL_DAY_TOKENS, 'rgb(255, 245, 245)', '--dsw-specific-national-day-decoration-display', 'rgb(139, 0, 0)'],
+  ] as const)('persists %s as a built-in light theme with seasonal tokens', (id, tokens, base, displayToken, sidebar) => {
     const { theme, host } = make()
-    theme.setTheme('national-day')
-    expect(theme.getTheme().preference).toBe('national-day')
-    expect(theme.getTheme().active.id).toBe('national-day')
+    theme.setTheme(id)
+    expect(theme.getTheme().preference).toBe(id)
+    expect(theme.getTheme().active.id).toBe(id)
     expect(theme.getTheme().active.colorScheme).toBe('light')
     expect(theme.getTheme().active.tokens).toMatchObject({
-      '--dsw-alias-bg-base': 'rgb(255, 245, 245)',
-      '--dsw-specific-national-day-decoration-display': 'block',
-      '--dsw-specific-sidebar-fill': 'rgb(139, 0, 0)',
-      '--dsw-specific-sidebar-new-session-label': 'rgb(139, 0, 0)',
+      '--dsw-alias-bg-base': base,
+      [displayToken]: 'block',
+      '--dsw-specific-sidebar-fill': sidebar,
+      '--dsw-specific-sidebar-new-session-label': tokens['--dsw-specific-sidebar-new-session-label'],
     })
-    expect(host.set).toHaveBeenCalledWith('preference', 'national-day')
+    expect(host.set).toHaveBeenCalledWith('preference', id)
   })
 
   it('adopts a published Host section without writing it back', () => {
@@ -147,12 +170,12 @@ describe('ThemeRuntime', () => {
   it('registered themes join the snapshot; disposing the active one resets to default', () => {
     const { theme, events, host } = make()
     const dispose = theme.register({ id: 'sepia', colorScheme: 'light', tokens: { '--dsw-alias-bg-base': 'red' } })
-    expect(theme.getTheme().themes.map(t => t.id)).toEqual(['light', 'dark', 'national-day', 'sepia'])
+    expect(theme.getTheme().themes.map(t => t.id)).toEqual([...BUILTIN_THEME_IDS, 'sepia'])
     theme.setTheme('sepia')
     expect(theme.getTheme().active.tokens['--dsw-alias-bg-base']).toBe('red')
     dispose()
     expect(theme.getTheme().preference).toBe('system')
-    expect(theme.getTheme().themes.map(t => t.id)).toEqual(['light', 'dark', 'national-day'])
+    expect(theme.getTheme().themes.map(t => t.id)).toEqual(BUILTIN_THEME_IDS)
     // Custom ids are in-process extension themes; only the built-in product
     // preferences cross the Host settings schema.
     expect(host.set).not.toHaveBeenCalled()
@@ -264,13 +287,20 @@ describe('ThemeRuntime', () => {
     }
   })
 
-  it('resolves system to National Day during the local holiday window', async () => {
+  it.each([
+    [new Date(2026, 0, 1, 12, 0, 0, 0), NEW_YEAR_THEME_ID],
+    [new Date(2026, 6, 17, 12, 0, 0, 0), BIRTHDAY_THEME_ID],
+    [new Date(2026, 1, 17, 12, 0, 0, 0), SPRING_FESTIVAL_THEME_ID],
+    [new Date(2026, 8, 25, 12, 0, 0, 0), MID_AUTUMN_THEME_ID],
+    [new Date(2026, 9, 1, 12, 0, 0, 0), NATIONAL_DAY_THEME_ID],
+    [new Date(2025, 9, 6, 12, 0, 0, 0), MID_AUTUMN_THEME_ID],
+  ] as const)('resolves system to %s on the local event day', async (sample, id) => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 9, 1, 12, 0, 0, 0))
+    vi.setSystemTime(sample)
     const { ctx, theme } = make()
     try {
       expect(theme.getTheme().preference).toBe('system')
-      expect(theme.getTheme().active.id).toBe('national-day')
+      expect(theme.getTheme().active.id).toBe(id)
       expect(theme.getTheme().active.colorScheme).toBe('light')
       theme.setTheme('dark')
       expect(theme.getTheme().active.id).toBe('dark')
@@ -282,14 +312,14 @@ describe('ThemeRuntime', () => {
 
   it('rechecks the calendar at local midnight while system is active', async () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 8, 30, 23, 59, 59, 900))
+    vi.setSystemTime(new Date(2025, 11, 31, 23, 59, 59, 900))
     const { ctx, theme, events } = make()
     try {
       expect(theme.getTheme().active.id).toBe('light')
       await vi.advanceTimersByTimeAsync(200)
-      expect(theme.getTheme().active.id).toBe('national-day')
+      expect(theme.getTheme().active.id).toBe(NEW_YEAR_THEME_ID)
       expect(events).toHaveLength(1)
-      expect(events[0]!.active.id).toBe('national-day')
+      expect(events[0]!.active.id).toBe(NEW_YEAR_THEME_ID)
     } finally {
       await ctx.fiber.dispose()
       vi.useRealTimers()
